@@ -105,9 +105,9 @@ protected:
     pglExtGamma* extGamma;
 
     pddiShader* defaultShader;
-    pglProgram* colorProgram[2];
-    pglProgram* textureProgram[2];
-    pglProgram* alphaTestProgram[2];
+    pglProgram* colorProgram;
+    pglProgram* textureProgram;
+    pglProgram* alphaTestProgram;
     pglProgram* currentProgram;
 
 //   int nBuffered;

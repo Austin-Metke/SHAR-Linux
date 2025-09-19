@@ -118,6 +118,14 @@ void pglProgram::SetTextureEnvironment(const pglTextureEnv* texEnv)
         UniformColour(scm, texEnv->specular);
         cgSetParameter1f(srm, texEnv->shininess);
     }
+    else
+    {
+        UniformColour(acm, pddiColour(-1));
+        UniformColour(ecm, pddiColour(-1));
+        UniformColour(dcm, pddiColour(-1));
+        UniformColour(scm, pddiColour(-1));
+        cgSetParameter1f(srm, 0.0f);
+    }
     checkForCgError();
 
     if (texEnv->alphaTest && alpharef >= 0)
@@ -138,6 +146,14 @@ void pglProgram::SetTextureEnvironment(const pglTextureEnv* texEnv)
         UniformColour(dcm, texEnv->diffuse);
         UniformColour(scm, texEnv->specular);
         glUniform1f(srm, texEnv->shininess);
+    }
+    else
+    {
+        UniformColour(acm, pddiColour(-1));
+        UniformColour(ecm, pddiColour(-1));
+        UniformColour(dcm, pddiColour(-1));
+        UniformColour(scm, pddiColour(-1));
+        glUniform1f(srm, 0.0f);
     }
 
     if (texEnv->alphaTest && alpharef >= 0)

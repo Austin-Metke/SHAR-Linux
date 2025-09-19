@@ -87,25 +87,6 @@ pglContext::pglContext(pglDevice* dev, pglDisplay* disp) : pddiBaseContext((pddi
 
 #ifdef RAD_CG
     CGprogram vertexShader = pglProgram::CompileShader(GL_VERTEX_SHADER,
-        "void main(float3 position : ATTR0,\n"
-        "          float3 normal : ATTR1,\n"
-        "          float2 texcoord : ATTR2,\n"
-        "          float4 color : ATTR3,\n"
-        "          out float4 oPosition : POSITION,\n"
-        "          out float2 tc : TEXCOORD0,\n"
-        "          out float4 cpri : COLOR0,\n"
-        "          out float4 csec : COLOR1,\n"
-        "          uniform float4x4 projection,\n"
-        "          uniform float4x4 modelview) {\n"
-        "    float4 V = mul(modelview, float4(position, 1.0));\n"
-        "    tc = texcoord;\n"
-        "    cpri = color;\n"
-        "    csec = float4(0.0, 0.0, 0.0, 0.0);\n"
-        "    oPosition = mul(projection, V);\n"
-        "}\n"
-    );
-
-    CGprogram litShader = pglProgram::CompileShader(GL_VERTEX_SHADER,
         "typedef struct {\n"
         "    int enabled;\n"
         "    float4 position;\n"
@@ -325,25 +306,20 @@ pglContext::pglContext(pglDevice* dev, pglDisplay* disp) : pddiBaseContext((pddi
     );
 #endif
 
-    colorProgram[0] = pglProgram::CreateProgram(vertexShader, fragmentShader);
-    colorProgram[1] = pglProgram::CreateProgram(litShader, fragmentShader);
+    colorProgram = pglProgram::CreateProgram(vertexShader, fragmentShader);
 
-    textureProgram[0] = pglProgram::CreateProgram(vertexShader, textureShader);
-    textureProgram[1] = pglProgram::CreateProgram(litShader, textureShader);
+    textureProgram = pglProgram::CreateProgram(vertexShader, textureShader);
 
-    alphaTestProgram[0] = pglProgram::CreateProgram(vertexShader, alphaTestShader);
-    alphaTestProgram[1] = pglProgram::CreateProgram(litShader, alphaTestShader);
+    alphaTestProgram = pglProgram::CreateProgram(vertexShader, alphaTestShader);
 
     // Don't leak shaders
 #ifdef RAD_CG
     cgDestroyProgram(vertexShader);
-    cgDestroyProgram(litShader);
     cgDestroyProgram(fragmentShader);
     cgDestroyProgram(textureShader);
     cgDestroyProgram(alphaTestShader);
 #else
     glDeleteShader(vertexShader);
-    glDeleteShader(litShader);
     glDeleteShader(fragmentShader);
     glDeleteShader(textureShader);
     glDeleteShader(alphaTestShader);
@@ -351,19 +327,16 @@ pglContext::pglContext(pglDevice* dev, pglDisplay* disp) : pddiBaseContext((pddi
 
     defaultShader = new pglMat(this);
     defaultShader->AddRef();
-    SetShaderProgram(colorProgram[0]);
+    SetShaderProgram(colorProgram);
 }
 
 pglContext::~pglContext()
 {
     defaultShader->Release();
     currentProgram->Release();
-    for(int i = 0; i < 2; i++)
-    {
-        colorProgram[i]->Release();
-        textureProgram[i]->Release();
-        alphaTestProgram[i]->Release();
-    }
+    colorProgram->Release();
+    textureProgram->Release();
+    alphaTestProgram->Release();
 
     delete extContext;
     delete extGamma;
@@ -1246,8 +1219,8 @@ void pglContext::SetShaderProgram(pglProgram* program)
 void pglContext::SetTextureEnvironment(const pglTextureEnv* texEnv)
 {
     if(texEnv->texture)
-        SetShaderProgram(texEnv->alphaTest ? alphaTestProgram[texEnv->lit] : textureProgram[texEnv->lit]);
+        SetShaderProgram(texEnv->alphaTest ? alphaTestProgram : textureProgram);
     else
-        SetShaderProgram(colorProgram[texEnv->lit]);
+        SetShaderProgram(colorProgram);
     currentProgram->SetTextureEnvironment(texEnv);
 }
