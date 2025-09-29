@@ -21,8 +21,8 @@ pglDisplay ::pglDisplay(pddiDisplayInfo* info)
 {
     displayInfo = info;
     mode = PDDI_DISPLAY_WINDOW;
-    winWidth = 640;
-    winHeight = 480;
+    winWidth = 960;
+    winHeight = 544;
     winBitDepth = 32;
 
     context = NULL;
@@ -58,7 +58,7 @@ long pglDisplay ::ProcessWindowMessage(SDL_Window* win, const SDL_WindowEvent* e
 
         case SDL_WINDOWEVENT_CLOSE:
             /* release and free the device context and rendering context */
-            SDL_GL_DeleteContext(hRC);
+            vglEnd();
             break;
 
 		default:
