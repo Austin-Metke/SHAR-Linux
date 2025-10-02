@@ -98,10 +98,16 @@ bool gxmTexture::Create(int x, int y, int bpp, int alphaDepth, int nMip, pddiTex
     nMipMap = nMip;
     type = textureType;
 
-    if((xSize % 8 == 0) || (ySize % 8 == 0))
+    log2X = fastlog2(xSize);
+    log2Y = fastlog2(ySize);
+
+    if((log2X == -1) || (log2Y == -1))
     {
-        lastError = PDDI_TEX_NOT_POW_2;
-        return false;
+        if(type == PDDI_TEXTYPE_DXT1 || type == PDDI_TEXTYPE_DXT3 || type == PDDI_TEXTYPE_DXT5)
+        {
+            lastError = PDDI_TEX_NOT_POW_2;
+            return false;
+        }
     }
 
     if ((xSize > context->GetMaxTextureDimension()) ||
