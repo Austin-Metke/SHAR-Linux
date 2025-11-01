@@ -52,13 +52,13 @@ protected:
     pddiTextureType type;
     int nMipMap;
 
-    bool valid;
     SceGxmTexture texture;
     int priority;
 
     pddiLockInfo lock;
 
-    char** bits;
+    uint8_t** bits;
+    SceUID* uids;
 };
 #endif
 

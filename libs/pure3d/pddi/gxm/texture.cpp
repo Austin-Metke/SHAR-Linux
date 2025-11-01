@@ -3,9 +3,11 @@
 //=============================================================================
 
 #include <pddi/gxm/gxm.hpp>
+#include <pddi/gxm/device.hpp>
 #include <pddi/gxm/display.hpp>
 #include <pddi/gxm/texture.hpp>
 #include <pddi/gxm/context.hpp>
+#include <pddi/gxm/texture_swizzler.hpp>
 
 #include <math.h>
 #include <pddi/base/debug.hpp>
@@ -17,10 +19,10 @@ static inline SceGxmTextureFormat PickPixelFormat(pddiPixelFormat format)
 {
     switch (format)
     {
-    case PDDI_PIXEL_RGB888: return SCE_GXM_TEXTURE_FORMAT_U8U8U8_RGB;
+    case PDDI_PIXEL_RGB888: return SCE_GXM_TEXTURE_FORMAT_X8U8U8U8_1RGB;
     case PDDI_PIXEL_ARGB8888: return SCE_GXM_TEXTURE_FORMAT_U8U8U8U8_ARGB;
     case PDDI_PIXEL_DXT1: return SCE_GXM_TEXTURE_FORMAT_UBC1_ABGR;
-    case PDDI_PIXEL_DXT3: return SCE_GXM_TEXTURE_FORMAT_UBC1_ABGR;
+    case PDDI_PIXEL_DXT3: return SCE_GXM_TEXTURE_FORMAT_UBC2_ABGR;
     case PDDI_PIXEL_DXT5: return SCE_GXM_TEXTURE_FORMAT_UBC3_ABGR;
     case PDDI_TEXTYPE_YUV: return SCE_GXM_TEXTURE_FORMAT_YUV420P3_CSC0;
     }
@@ -124,21 +126,24 @@ bool gxmTexture::Create(int x, int y, int bpp, int alphaDepth, int nMip, pddiTex
         bpp = 32;
     }
 
-    bits = new char* [nMipMap + 1];
+    lock.depth = bpp;
+    lock.format = PickPixelFormat(textureType, bpp, alphaDepth);
+
+    bits = new uint8_t* [nMipMap + 1];
+    uids = new SceUID [nMipMap + 1];
     if (type == PDDI_TEXTYPE_DXT1 || type == PDDI_TEXTYPE_DXT3 || type == PDDI_TEXTYPE_DXT5)
     {
         unsigned int blocksize = type == PDDI_TEXTYPE_DXT1 ? 8 : 16;
         for(int i = 0; i < nMipMap+1; i++)
-            bits[i] = (char*)radMemoryAllocAligned(radMemoryGetCurrentAllocator(), size_t(ceil(double(xSize>>i)/4)*ceil(double(ySize>>i)/4)*blocksize), SCE_GXM_TEXTURE_ALIGNMENT);
+            bits[i] = (uint8_t*)gxmDevice::graphicsAlloc(SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, size_t(ceil(double(xSize>>i)/4)*ceil(double(ySize>>i)/4)*blocksize), SCE_GXM_TEXTURE_ALIGNMENT, SCE_GXM_MEMORY_ATTRIB_READ, &uids[i]);
+        CHK_GXM(sceGxmTextureInitSwizzled(&texture, bits[0], PickPixelFormat(lock.format), xSize, ySize, nMipMap));
     }
     else
     {
-        for(int i = 0; i < nMipMap+1; i++)
-            bits[i] = (char*)radMemoryAllocAligned(radMemoryGetCurrentAllocator(), ((xSize>>i)*(ySize>>i)*bpp)/8, SCE_GXM_TEXTURE_ALIGNMENT);
+        for(int i = 0; i < nMipMap + 1; i++)
+            bits[i] = (uint8_t*)gxmDevice::graphicsAlloc(SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, ((xSize>>i)*(ySize>>i)*bpp)/8, SCE_GXM_TEXTURE_ALIGNMENT, SCE_GXM_MEMORY_ATTRIB_READ, &uids[i]);
+        CHK_GXM(sceGxmTextureInitLinear(&texture, bits[0], PickPixelFormat(lock.format), xSize, ySize, nMipMap));
     }
-
-    lock.depth = bpp;
-    lock.format = PickPixelFormat(textureType, bpp, alphaDepth);
 
     if(context->GetDisplay()->ExtBGRA())
     {
@@ -170,8 +175,6 @@ bool gxmTexture::Create(int x, int y, int bpp, int alphaDepth, int nMip, pddiTex
         lock.rgbaMask[3] = 0xff000000;
     }
 
-    CHK_GXM(sceGxmTextureInitLinear(&texture, bits, PickPixelFormat(lock.format), xSize, ySize, nMipMap));
-
     context->ADD_STAT(PDDI_STAT_TEXTURE_ALLOC_32BIT, (float)((xSize * ySize * lock.depth) / 8192));
     context->ADD_STAT(PDDI_STAT_TEXTURE_COUNT_32BIT, 1);
 
@@ -184,7 +187,6 @@ gxmTexture::gxmTexture(gxmContext* c)
     contextID = c->contextID;
     bits = NULL;
     priority = 15;
-    valid = false;
 }
 
 gxmTexture::~gxmTexture()
@@ -192,8 +194,9 @@ gxmTexture::~gxmTexture()
     if(bits)
     {
         for(int i = 0; i < nMipMap + 1; i++)
-            radMemoryFreeAligned(bits[i]);
+            gxmDevice::graphicsFree(uids[i]);
         delete [] bits;
+        delete [] uids;
     }
 
     context->ADD_STAT(PDDI_STAT_TEXTURE_ALLOC_32BIT, -(float)((xSize * ySize * lock.depth) / 8192));
@@ -240,7 +243,7 @@ pddiLockInfo* gxmTexture::Lock(int mipMap, pddiRect* rect)
     {
         unsigned int blocksize = lock.format == PDDI_PIXEL_DXT1 ? 8 : 16;
         lock.pitch = ceil( double( xSize >> mipMap ) / 4 ) * blocksize;
-        lock.bits = bits[mipMap];
+        lock.bits = radMemoryAllocAligned(radMemoryGetCurrentAllocator(), size_t(ceil(double(ySize>>mipMap)/4)*lock.pitch), 16);
     }
     else if (lock.format == PDDI_PIXEL_YUV)
     {
@@ -258,7 +261,16 @@ pddiLockInfo* gxmTexture::Lock(int mipMap, pddiRect* rect)
 
 void gxmTexture::Unlock(int mipLevel)
 {
-    valid = false;
+    if(lock.format == PDDI_PIXEL_DXT1 || lock.format == PDDI_PIXEL_DXT3 || lock.format == PDDI_PIXEL_DXT5)
+    {
+        uint32_t width = ceil(double(xSize >> mipLevel) / 4);
+        uint32_t height = ceil(double(ySize >> mipLevel) / 4);
+        if(type == PDDI_TEXTYPE_DXT5)
+            SwizzleTexData128Bpp(bits[mipLevel], (uint8_t*)lock.bits, 0, 0, width, height, width, rmt::Min(width, height));
+        else
+			SwizzleTexData64Bpp(bits[mipLevel], (uint8_t*)lock.bits, 0, 0, width, height, width, rmt::Min(width, height));
+        radMemoryFreeAligned(lock.bits);
+    }
 }
 
 void gxmTexture::SetPriority(int p)

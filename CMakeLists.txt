@@ -1160,6 +1160,7 @@ if(SRR2_P3D_PDDI STREQUAL "GXM")
 		"libs/pure3d/pddi/gxm/texture.cpp"
 		"libs/pure3d/pddi/gxm/program.cpp"
 		"libs/pure3d/pddi/gxm/display.cpp"
+		"libs/pure3d/pddi/gxm/texture_swizzler.cpp"
 	)
 elseif(SRR2_P3D_PDDI STREQUAL "GLES2")
 	list(APPEND PDDI_SOURCES
