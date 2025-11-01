@@ -156,52 +156,27 @@ gxmContext::gxmContext(gxmDevice* dev, gxmDisplay* disp) : pddiBaseContext((pddi
     CHK_GXM(sceGxmShaderPatcherCreate(&patcherParams, &shaderPatcher));
 
     // use embedded GXP files
-    vertexProgram = new gxmProgram(p3d::openFile("shaders/vertex_cg.gxp", false));
+    vertexProgram = new gxmProgram(shaderPatcher, p3d::openFile("app0:/shaders/vertex_cg.gxp", false));
     vertexProgram->AddRef();
-    colorProgram = new gxmProgram(p3d::openFile("shaders/color_cg.gxp", false));
+    colorProgram = new gxmProgram(shaderPatcher, p3d::openFile("app0:/shaders/color_cg.gxp", false));
     colorProgram->AddRef();
-    textureProgram = new gxmProgram(p3d::openFile("shaders/texture_cg.gxp", false));
+    textureProgram = new gxmProgram(shaderPatcher, p3d::openFile("app0:/shaders/texture_cg.gxp", false));
     textureProgram->AddRef();
-    alphaTestProgram = new gxmProgram(p3d::openFile("shaders/alpha_cg.gxp", false));
+    alphaTestProgram = new gxmProgram(shaderPatcher, p3d::openFile("app0:/shaders/alpha_cg.gxp", false));
     alphaTestProgram->AddRef();
 
-    CHK_GXM(sceGxmShaderPatcherRegisterProgram(shaderPatcher, vertexProgram->GetProgram(), &vertexProgramId));
-    CHK_GXM(sceGxmShaderPatcherRegisterProgram(shaderPatcher, colorProgram->GetProgram(), &colorProgramId));
-    CHK_GXM(sceGxmShaderPatcherRegisterProgram(shaderPatcher, textureProgram->GetProgram(), &textureProgramId));
-    CHK_GXM(sceGxmShaderPatcherRegisterProgram(shaderPatcher, alphaTestProgram->GetProgram(), &alphaProgramId));
+    colorFragment = colorProgram->PatchFragmentShader(display->GetMSAAMode());
+    textureFragment = textureProgram->PatchFragmentShader(display->GetMSAAMode());
+    alphaFragment = alphaTestProgram->PatchFragmentShader(display->GetMSAAMode());
 
-    CHK_GXM(sceGxmShaderPatcherCreateFragmentProgram(
-        shaderPatcher,
-        colorProgramId,
-        SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
-        display->GetMSAAMode(),
-        NULL,
-        NULL,
-        &colorFragment));
-    CHK_GXM(sceGxmShaderPatcherCreateFragmentProgram(
-        shaderPatcher,
-        textureProgramId,
-        SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
-        display->GetMSAAMode(),
-        NULL,
-        NULL,
-        &textureFragment));
-    CHK_GXM(sceGxmShaderPatcherCreateFragmentProgram(
-        shaderPatcher,
-        alphaProgramId,
-        SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
-        display->GetMSAAMode(),
-        NULL,
-        NULL,
-        &alphaFragment));
-
-    defaultColour = (pddiColour*)device->graphicsAlloc(
+    dummyVector = (pddiVector4*)device->graphicsAlloc(
         SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
-        sizeof(pddiColour),
+        sizeof(pddiVector4),
         4,
         SCE_GXM_MEMORY_ATTRIB_READ,
-        &defaultColourUid);
-    CHK_GXM(sceGxmSetVertexStream(context, 1, defaultColour));
+        &dummyVectorUid);
+    dummyVector->Set(1.0f, 1.0f, 1.0f);
+    CHK_GXM(sceGxmSetVertexStream(context, 1, dummyVector));
 
     defaultShader = new gxmMat(this);
     defaultShader->AddRef();
@@ -218,6 +193,9 @@ gxmContext::~gxmContext()
     alphaTestProgram->Release();
 
     delete extGamma;
+
+    gxmDevice::graphicsFree(dummyVectorUid);
+    gxmDevice::graphicsFree(patcherBufferUid);
 
     display->SetContext(NULL);
     display->Release();
@@ -244,9 +222,6 @@ void gxmContext::BeginFrame()
         display->GetColorSurface(),
         display->GetDepthSurface()
     ));
-
-    CHK_GXM(sceGxmReserveVertexDefaultUniformBuffer(context, &vertexUniformBuffer));
-    CHK_GXM(sceGxmReserveFragmentDefaultUniformBuffer(context, &fragmentUniformBuffer));
 
     if(display->HasReset())
     {
@@ -285,7 +260,7 @@ void gxmContext::Clear(unsigned bufferMask)
     a.Set( -1.0f, -1.0f, state.viewState->clearDepth);
     b.Set(3.0f, -1.0f, state.viewState->clearDepth);
     c.Set(-1.0f, 3.0f, state.viewState->clearDepth);
-    pddiPrimStream* stream = BeginPrims(defaultShader, PDDI_PRIM_TRIANGLES, 3);
+    pddiPrimStream* stream = BeginPrims(defaultShader, PDDI_PRIM_TRIANGLES, PDDI_V_C, 3);
     stream->Vertex(&a, state.viewState->clearColour);
     stream->Vertex(&b, state.viewState->clearColour);
     stream->Vertex(&c, state.viewState->clearColour);
@@ -313,10 +288,10 @@ void gxmContext::SetupHardwareProjection(void)
                       -((1/state.viewState->camera.aspect)/2),  ((1/state.viewState->camera.aspect)/2),
                       (state.viewState->camera.nearPlane),(state.viewState->camera.farPlane));
             sceGxmSetViewport(context,
-                              state.viewState->viewWindow.left * display->GetWidth(),
-                              (state.viewState->viewWindow.right - state.viewState->viewWindow.left) * display->GetWidth(), 
-                              (1.0f - state.viewState->viewWindow.bottom) * display->GetHeight(),
-                              (state.viewState->viewWindow.bottom - state.viewState->viewWindow.top) * display->GetHeight(),
+                              (state.viewState->viewWindow.left + 0.5f) * display->GetWidth(),
+                              (state.viewState->viewWindow.right - state.viewState->viewWindow.left) * display->GetWidth() / 2.0f,
+                              (state.viewState->viewWindow.top + 0.5f) * display->GetHeight(),
+                              (state.viewState->viewWindow.top - state.viewState->viewWindow.bottom) * display->GetHeight() / 2.0f,
                               state.viewState->zRange[0], state.viewState->zRange[1] - state.viewState->zRange[0]);
             break;
 
@@ -324,35 +299,20 @@ void gxmContext::SetupHardwareProjection(void)
             projection.Identity();
             projection.SetPerspective(state.viewState->camera.fov,state.viewState->camera.aspect,state.viewState->camera.nearPlane,state.viewState->camera.farPlane);
             sceGxmSetViewport(context,
-                            state.viewState->viewWindow.left * display->GetWidth(),
-                            (state.viewState->viewWindow.right - state.viewState->viewWindow.left) * display->GetWidth(), 
-                            (1.0f - state.viewState->viewWindow.bottom) * display->GetHeight(),
-                            (state.viewState->viewWindow.bottom - state.viewState->viewWindow.top) * display->GetHeight(),
+                            (state.viewState->viewWindow.left + 0.5f)* display->GetWidth(),
+                            (state.viewState->viewWindow.right - state.viewState->viewWindow.left) * display->GetWidth() / 2.0f,
+                            (state.viewState->viewWindow.top + 0.5f) * display->GetHeight(),
+                            (state.viewState->viewWindow.top - state.viewState->viewWindow.bottom) * display->GetHeight() / 2.0f,
                             state.viewState->zRange[0], state.viewState->zRange[1] - state.viewState->zRange[0]);
             break;
         default:
             PDDIASSERTMSG(0, "Bad projection mode","");
             break;
     }
-
-    if(vertexProgram)
-        vertexProgram->SetProjectionMatrix(vertexUniformBuffer, &projection);
 }
 
 void gxmContext::LoadHardwareMatrix(pddiMatrixType id)
 {
-    switch(id)
-    {
-        case PDDI_MATRIX_MODELVIEW :
-        {
-            if(vertexProgram)
-                vertexProgram->SetModelViewMatrix(vertexUniformBuffer, state.matrixStack[id]->Top());
-        }
-        break;
-        default :
-            PDDIASSERTMSG(0, "Invalid matrix load","");
-            break;
-    }
 }
 
 // viewport clipping
@@ -424,17 +384,28 @@ pddiPrimStream* gxmContext::BeginPrims(pddiShader* mat, pddiPrimType primType, u
 {
     if(!mat)
         mat = defaultShader;
+    PDDIASSERT(vertexCount);
 
     pddiBaseContext::BeginPrims(mat, primType, vertexType, vertexCount);
-    
-    pddiBaseShader* material = (pddiBaseShader*)mat;
-    ADD_STAT( PDDI_STAT_MATERIAL_OPS, !material->IsCurrent() );
-    material->SetMaterial();
 
     pddiPrimBufferDesc desc(primType, vertexType, vertexCount);
     thePrimStream.buffer = device->NewPrimBuffer(&desc);
     thePrimStream.stream = thePrimStream.buffer->Lock();
     streams.push_back(thePrimStream.buffer);
+    SetVertexShader(vertexType, ((gxmPrimBuffer*)thePrimStream.buffer)->GetStride());
+
+    CHK_GXM(sceGxmReserveVertexDefaultUniformBuffer(context, &vertexUniformBuffer));
+    for(int i = 0; i < PDDI_MAX_LIGHTS; i++)
+        vertexProgram->SetLightState(vertexUniformBuffer, i, &state.lightingState->light[i]);
+    vertexProgram->SetAmbientLight(vertexUniformBuffer, state.lightingState->ambient);
+    vertexProgram->SetModelViewMatrix(vertexUniformBuffer, state.matrixStack[PDDI_MATRIX_MODELVIEW]->Top());
+    vertexProgram->SetProjectionMatrix(vertexUniformBuffer, &projection);
+
+    pddiBaseShader* material = (pddiBaseShader*)mat;
+    ADD_STAT(PDDI_STAT_MATERIAL_OPS, !material->IsCurrent());
+    CHK_GXM(sceGxmReserveFragmentDefaultUniformBuffer(context, &fragmentUniformBuffer));
+    material->SetMaterial();
+
     return &thePrimStream;
 }
 
@@ -612,9 +583,10 @@ gxmPrimBuffer::gxmPrimBuffer(gxmContext* c, pddiPrimType type, unsigned vertexFo
     stride = 36;
 
     mem = stride * nVertex;
+    PDDIASSERT(mem);
     buffer = (uint8_t*)gxmDevice::graphicsAlloc(
         SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
-        stride,
+        mem,
         4,
         SCE_GXM_MEMORY_ATTRIB_READ,
         &bufferUid);
@@ -648,6 +620,7 @@ gxmPrimBuffer::gxmPrimBuffer(gxmContext* c, pddiPrimType type, unsigned vertexFo
         indexCount *= 2;
     }
 
+    PDDIASSERT(indexCount);
     indices = (uint16_t*)gxmDevice::graphicsAlloc(
         SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE,
         indexCount * sizeof( uint16_t ),
@@ -736,12 +709,9 @@ void gxmPrimBuffer::Display(void)
 {
     if(!valid)
     {
-        vertexShader = context->GetVertexShader(vertexType);
         valid = true;
     }
 
-    CHK_GXM(sceGxmReserveVertexDefaultUniformBuffer(context->context, &context->vertexUniformBuffer));
-    CHK_GXM(sceGxmReserveFragmentDefaultUniformBuffer(context->context, &context->fragmentUniformBuffer));
     CHK_GXM(sceGxmSetVertexStream(context->context, 0, buffer));
     CHK_GXM(sceGxmDraw(context->context, primTypeTable[primType], SCE_GXM_INDEX_FORMAT_U16, indices, indexCount));
 }
@@ -766,7 +736,18 @@ void gxmContext::DrawPrimBuffer(pddiShader* mat, pddiPrimBuffer* buffer)
 
     pddiBaseShader* material = (pddiBaseShader*)mat;
     ADD_STAT(PDDI_STAT_MATERIAL_OPS, !material->IsCurrent());
+    SetVertexShader(((gxmPrimBuffer*)buffer)->GetVertexFormat(), ((gxmPrimBuffer*)buffer)->GetStride());
+
+    CHK_GXM(sceGxmReserveVertexDefaultUniformBuffer(context, &vertexUniformBuffer));
+    for(int i = 0; i < PDDI_MAX_LIGHTS; i++)
+        vertexProgram->SetLightState(vertexUniformBuffer, i, &state.lightingState->light[i]);
+    vertexProgram->SetAmbientLight(vertexUniformBuffer, state.lightingState->ambient);
+    vertexProgram->SetModelViewMatrix(vertexUniformBuffer, state.matrixStack[PDDI_MATRIX_MODELVIEW]->Top());
+    vertexProgram->SetProjectionMatrix(vertexUniformBuffer, &projection);
+
+    CHK_GXM(sceGxmReserveFragmentDefaultUniformBuffer(context, &fragmentUniformBuffer));
     material->SetMaterial();
+
     ((gxmPrimBuffer*)buffer)->Display();
 }
 
@@ -779,15 +760,11 @@ int gxmContext::GetMaxLights(void)
 
 void gxmContext::SetupHardwareLight(int handle)
 {
-    if(vertexProgram)
-        vertexProgram->SetLightState(vertexUniformBuffer, handle, &state.lightingState->light[handle]);
 }
 
 void gxmContext::SetAmbientLight(pddiColour col)
 {
     pddiBaseContext::SetAmbientLight(col);
-    if(vertexProgram)
-        vertexProgram->SetAmbientLight(vertexUniformBuffer, col);
 }
 
 // backface culling
@@ -1006,89 +983,20 @@ float gxmContext::EndTiming(void)
     return display->EndTiming();
 }
 
-SceGxmVertexProgram* gxmContext::GetVertexShader(unsigned int vertexType)
+void gxmContext::SetVertexShader(unsigned int vertexType, uint16_t stride)
 {
-    vertexShader = vertexCache[vertexType];
-    if(vertexShader)
-        return vertexShader;
-
-    uint16_t offset = 0;
-    int attr = 0, strm = 0;
-
-    SceGxmVertexAttribute vertexAttributes[4];
-    SceGxmVertexStream vertexStreams[2];
-    vertexAttributes[attr].streamIndex = 0;
-    vertexAttributes[attr].offset = offset;
-    vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
-    vertexAttributes[attr].componentCount = 3;
-    vertexAttributes[attr].regIndex = 0;
-    attr++;
-    offset += 12;
-
-    if( vertexType & PDDI_V_NORMAL )
+    SceGxmVertexProgram* vert = vertexCache[vertexType];
+    if(!vert)
     {
-        vertexAttributes[attr].streamIndex = 0;
-        vertexAttributes[attr].offset = offset;
-        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
-        vertexAttributes[attr].componentCount = 3;
-        vertexAttributes[attr].regIndex = 1;
-        attr++;
-        offset += 12;
+        vert = vertexProgram->PatchVertexShader(vertexType, stride);
+        vertexCache[vertexType] = vert;
     }
 
-    if( vertexType & 0xf )
+    if(vert != vertexShader)
     {
-        vertexAttributes[attr].streamIndex = 0;
-        vertexAttributes[attr].offset = offset;
-        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
-        vertexAttributes[attr].componentCount = 2;
-        vertexAttributes[attr].regIndex = 2;
-        attr++;
-        offset += 8;
+        vertexShader = vert;
+        sceGxmSetVertexProgram(context, vert);
     }
-
-    if( vertexType & PDDI_V_COLOUR )
-    {
-        vertexAttributes[attr].streamIndex = 0;
-        vertexAttributes[attr].offset = offset;
-        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_U8N;
-        vertexAttributes[attr].componentCount = 4;
-        vertexAttributes[attr].regIndex = 3;
-        attr++;
-        offset += 4;
-    }
-    else
-    {
-        vertexAttributes[attr].streamIndex = 1;
-        vertexAttributes[attr].offset = 0;
-        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_U8N;
-        vertexAttributes[attr].componentCount = 4;
-        vertexAttributes[attr].regIndex = 3;
-        attr++;
-    }
-
-    vertexStreams[strm].stride = offset;
-    vertexStreams[strm].indexSource = SCE_GXM_INDEX_SOURCE_INDEX_16BIT;
-    strm++;
-
-    if( !(vertexType & PDDI_V_COLOUR) )
-    {
-        vertexStreams[strm].stride = 0;
-        vertexStreams[strm].indexSource = SCE_GXM_INDEX_SOURCE_INDEX_16BIT;
-        strm++;
-    }
-
-    CHK_GXM(sceGxmShaderPatcherCreateVertexProgram(
-        shaderPatcher,
-        vertexProgramId,
-        vertexAttributes,
-        attr,
-        vertexStreams,
-        strm,
-        &vertexShader));
-    vertexCache[vertexType] = vertexShader;
-
-    return vertexShader;
 }
 
 void gxmContext::SetFragmentProgram(gxmProgram* program, SceGxmFragmentProgram* frag)
@@ -1099,17 +1007,11 @@ void gxmContext::SetFragmentProgram(gxmProgram* program, SceGxmFragmentProgram* 
     if(fragmentProgram)
         fragmentProgram->Release();
     fragmentProgram = program;
-    sceGxmSetFragmentProgram( context, frag );
+    sceGxmSetFragmentProgram(context, frag);
     if(!fragmentProgram)
         return;
 
     fragmentProgram->AddRef();
-    if(fragmentProgram->SupportsLighting())
-    {
-        for (int i = 0; i < PDDI_MAX_LIGHTS; i++)
-            SetupHardwareLight(i);
-        SetAmbientLight(state.lightingState->ambient);
-    }
 }
 
 void gxmContext::SetTextureEnvironment(const gxmTextureEnv* texEnv)
@@ -1118,5 +1020,7 @@ void gxmContext::SetTextureEnvironment(const gxmTextureEnv* texEnv)
         SetFragmentProgram(texEnv->alphaTest ? alphaTestProgram : textureProgram, texEnv->alphaTest ? alphaFragment : textureFragment );
     else
         SetFragmentProgram(colorProgram, colorFragment);
-    fragmentProgram->SetTextureEnvironment(fragmentUniformBuffer, texEnv);
+
+    vertexProgram->SetTextureEnvironment(vertexUniformBuffer, texEnv);
+    fragmentProgram->SetAlphaTest(fragmentUniformBuffer, texEnv);
 }

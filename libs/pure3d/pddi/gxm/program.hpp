@@ -15,7 +15,7 @@ class tFile;
 class gxmProgram : public pddiObject
 {
 public:
-    gxmProgram(tFile* gxp);
+    gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp);
     ~gxmProgram();
 
     const SceGxmProgram* GetProgram() { return program; }
@@ -23,14 +23,20 @@ public:
     void SetProjectionMatrix( void* buffer, const pddiMatrix* matrix );
     void SetModelViewMatrix( void* buffer, const pddiMatrix* matrix );
     void SetTextureEnvironment( void* buffer, const gxmTextureEnv* texEnv );
+    void SetAlphaTest( void* buffer, const gxmTextureEnv* texEnv );
     void SetLightState( void* buffer, int handle, const pddiLight* lightState );
     void SetAmbientLight( void* buffer, pddiColour ambient );
 
     inline bool SupportsLighting() { return acs != nullptr; }
     inline bool SupportsTextures() { return sampler != nullptr; }
 
+    SceGxmVertexProgram* PatchVertexShader(unsigned int vertexType, uint16_t stride);
+    SceGxmFragmentProgram* PatchFragmentShader(SceGxmMultisampleMode msaaMode);
+
 protected:
     SceGxmProgram* program;
+    SceGxmShaderPatcher* shaderPatcher;
+    SceGxmShaderPatcherId patcherId;
 
     // Uniform locations
     const SceGxmProgramParameter* projection;
@@ -50,6 +56,11 @@ protected:
     const SceGxmProgramParameter* scm;
     const SceGxmProgramParameter* ecm;
     const SceGxmProgramParameter* srm;
+
+    const SceGxmProgramParameter* position;
+    const SceGxmProgramParameter* normal;
+    const SceGxmProgramParameter* texcoord;
+    const SceGxmProgramParameter* color;
 };
 
 #endif

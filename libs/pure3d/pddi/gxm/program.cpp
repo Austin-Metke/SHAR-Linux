@@ -17,13 +17,15 @@ static inline void UniformColour(void* buffer, const SceGxmProgramParameter* par
     sceGxmSetUniformDataF(buffer, param, 0, 4, colour);
 }
 
-gxmProgram::gxmProgram(tFile* gxp)
+gxmProgram::gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp)
     : program()
+    , shaderPatcher(patcher)
 {
     gxp->AddRef();
     program = (SceGxmProgram*)malloc(gxp->GetSize());
     gxp->GetData(program, gxp->GetSize());
     gxp->Release();
+    CHK_GXM(sceGxmProgramCheck(program));
 
     projection = sceGxmProgramFindParameterByName(program, "projection");
     modelview = sceGxmProgramFindParameterByName(program, "modelview");
@@ -46,6 +48,13 @@ gxmProgram::gxmProgram(tFile* gxp)
     scm = sceGxmProgramFindParameterByName(program, "scm");
     ecm = sceGxmProgramFindParameterByName(program, "ecm");
     srm = sceGxmProgramFindParameterByName(program, "srm");
+
+    position = sceGxmProgramFindParameterByName(program, "position");
+    normal = sceGxmProgramFindParameterByName(program, "normal");
+    texcoord = sceGxmProgramFindParameterByName(program, "texcoord");
+    color = sceGxmProgramFindParameterByName(program, "color");
+
+    CHK_GXM(sceGxmShaderPatcherRegisterProgram(patcher, program, &patcherId));
 }
 
 gxmProgram::~gxmProgram()
@@ -91,7 +100,10 @@ void gxmProgram::SetTextureEnvironment(void* buffer, const gxmTextureEnv* texEnv
         float shininess = 0.0f;
         sceGxmSetUniformDataF(buffer, srm, 0, 1, &texEnv->shininess);
     }
+}
 
+void gxmProgram::SetAlphaTest(void* buffer, const gxmTextureEnv* texEnv)
+{
     if(texEnv->alphaTest && alpharef >= 0)
     {
         PDDIASSERT(texEnv->alphaCompareMode == PDDI_COMPARE_GREATER ||
@@ -140,4 +152,113 @@ void gxmProgram::SetAmbientLight(void* buffer, pddiColour ambient)
 {
     if(acs)
         UniformColour(buffer, acs, ambient);
+}
+
+
+SceGxmVertexProgram* gxmProgram::PatchVertexShader(unsigned int vertexType, uint16_t stride)
+{
+    SceGxmVertexProgram* vert = nullptr;
+    uint16_t offset = 0;
+    int attr = 0, strm = 0;
+
+    SceGxmVertexAttribute vertexAttributes[4];
+    SceGxmVertexStream vertexStreams[2];
+    vertexAttributes[attr].streamIndex = 0;
+    vertexAttributes[attr].offset = offset;
+    vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+    vertexAttributes[attr].componentCount = 3;
+    vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(position);
+    attr++;
+    offset += 12;
+
+    if(vertexType & PDDI_V_NORMAL)
+    {
+        vertexAttributes[attr].streamIndex = 0;
+        vertexAttributes[attr].offset = offset;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+        vertexAttributes[attr].componentCount = 3;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(normal);
+        attr++;
+        offset += 12;
+    }
+    else
+    {
+        vertexAttributes[attr].streamIndex = 1;
+        vertexAttributes[attr].offset = 0;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+        vertexAttributes[attr].componentCount = 3;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(normal);
+        attr++;
+    }
+
+    if(vertexType & 0xf)
+    {
+        vertexAttributes[attr].streamIndex = 0;
+        vertexAttributes[attr].offset = offset;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+        vertexAttributes[attr].componentCount = 2;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(texcoord);
+        attr++;
+        offset += 8;
+    }
+    else
+    {
+        vertexAttributes[attr].streamIndex = 1;
+        vertexAttributes[attr].offset = 0;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+        vertexAttributes[attr].componentCount = 2;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(texcoord);
+        attr++;
+    }
+
+    if(vertexType & PDDI_V_COLOUR)
+    {
+        vertexAttributes[attr].streamIndex = 0;
+        vertexAttributes[attr].offset = offset;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_U8N;
+        vertexAttributes[attr].componentCount = 4;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(color);
+        attr++;
+        offset += 4;
+    }
+    else
+    {
+        vertexAttributes[attr].streamIndex = 1;
+        vertexAttributes[attr].offset = 0;
+        vertexAttributes[attr].format = SCE_GXM_ATTRIBUTE_FORMAT_F32;
+        vertexAttributes[attr].componentCount = 4;
+        vertexAttributes[attr].regIndex = sceGxmProgramParameterGetResourceIndex(color);
+        attr++;
+    }
+
+    vertexStreams[strm].stride = stride;
+    vertexStreams[strm].indexSource = SCE_GXM_INDEX_SOURCE_INDEX_16BIT;
+    strm++;
+    vertexStreams[strm].stride = 0;
+    vertexStreams[strm].indexSource = SCE_GXM_INDEX_SOURCE_INDEX_16BIT;
+    strm++;
+
+    CHK_GXM(sceGxmShaderPatcherCreateVertexProgram(
+        shaderPatcher,
+        patcherId,
+        vertexAttributes,
+        attr,
+        vertexStreams,
+        strm,
+        &vert));
+    return vert;
+}
+
+SceGxmFragmentProgram* gxmProgram::PatchFragmentShader(SceGxmMultisampleMode msaaMode)
+{
+    SceGxmFragmentProgram* frag = nullptr;
+    CHK_GXM(sceGxmShaderPatcherCreateFragmentProgram(
+        shaderPatcher,
+        patcherId,
+        SCE_GXM_OUTPUT_REGISTER_FORMAT_UCHAR4,
+        msaaMode,
+        NULL,
+        NULL,
+        &frag));
+    return frag;
 }

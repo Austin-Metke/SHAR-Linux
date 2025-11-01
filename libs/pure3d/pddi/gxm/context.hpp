@@ -39,7 +39,7 @@ public :
     void SetScissor(pddiRect* rect);
 
     // immediate mode prim rendering
-    pddiPrimStream* BeginPrims(pddiShader* material, pddiPrimType primType, unsigned vertexType, int vertexCount = 0, unsigned pass = 0);
+    pddiPrimStream* BeginPrims(pddiShader* material, pddiPrimType primType, unsigned vertexType, int vertexCount, unsigned pass = 0);
     void EndPrims(pddiPrimStream* stream);
 
     // retained mode prim rendering
@@ -101,7 +101,7 @@ protected:
     void  BeginTiming(void);
     float EndTiming(void);
 
-    SceGxmVertexProgram* GetVertexShader(unsigned int vertexType);
+    void SetVertexShader(unsigned int vertexType, uint16_t stride);
 
     static void* patcherHostAlloc(void* userData, uint32_t size);
     static void patcherHostFree(void* userData, void* mem);
@@ -113,7 +113,7 @@ protected:
     gxmExtGamma* extGamma;
 
     pddiShader* defaultShader;
-    pddiColour* defaultColour;
+    pddiVector4* dummyVector;
 
     gxmProgram* vertexProgram;
     gxmProgram* fragmentProgram;
@@ -137,7 +137,7 @@ protected:
     SceGxmFragmentProgram* alphaFragment;
 
     SceUID defaultIndicesUid;
-    SceUID defaultColourUid;
+    SceUID dummyVectorUid;
     SceUID patcherBufferUid;
     SceUID patcherVertexUsseUid;
     SceUID patcherFragmentUsseUid;
@@ -184,6 +184,8 @@ public:
     unsigned GetMemImageLength() {return 0; }
     void SetMemImageParam(unsigned param, unsigned value) { /**/ }
 
+    unsigned GetVertexFormat() { return vertexType; }
+    unsigned GetStride() { return stride; }
     void Display(void);
 
 protected:
