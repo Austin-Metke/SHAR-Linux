@@ -23,10 +23,10 @@
 #define ALIGN(x, a)					(((x) + ((a) - 1)) & ~((a) - 1))
 
 #if defined(ENABLE_RAZOR_GPU_CAPTURE) || defined(ENABLE_RAZOR_HUD)
-#include <libsysmodule.h>
+#include <psp2/sysmodule.h>
 #endif
 #ifdef ENABLE_RAZOR_GPU_CAPTURE
-#include <razor_capture.h>
+#include <psp2/razor_capture.h>
 #endif
 
 gxmDisplay::gxmDisplay(pddiDisplayInfo* info)
@@ -60,6 +60,9 @@ gxmDisplay::~gxmDisplay()
     gxmDevice::graphicsFree(fragmentRingBufferUid);
     gxmDevice::graphicsFree(vertexRingBufferUid);
     gxmDevice::graphicsFree(vdmRingBufferUid);
+    for(uint32_t i = 0; i < GetNumColourBuffer(); ++i)
+        gxmDevice::graphicsFree(displayBufferUid[i]);
+    gxmDevice::graphicsFree(depthBufferUid);
     free(contextParams.hostMem);
     sceGxmTerminate();
 
@@ -126,16 +129,16 @@ bool gxmDisplay::InitDisplay(const pddiDisplayInit* init)
 #ifdef ENABLE_RAZOR_HUD
     // Initialize the Razor HUD system.
     // This should be done before the call to sceGxmInitialize().
-    CHK_GXM(sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_HUD));
+    sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_HUD);
 #endif
 
 #ifdef ENABLE_RAZOR_GPU_CAPTURE
     // Initialize the Razor capture system.
     // This should be done before the call to sceGxmInitialize().
-    CHK_GXM(sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE));
+    sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE);
 
     // Trigger a capture after 100 frames.
-    sceRazorGpuCaptureSetTrigger(100, "ux0:data/srr2.sgx");
+    sceRazorGpuCaptureSetTrigger(10000, "ux0:data/srr2.sgx");
 #endif
 
     // set up parameters and initialize
