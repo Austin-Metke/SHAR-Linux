@@ -9,10 +9,10 @@ float3 direction(float4 p1, float4 p2) { return normalize(p2.xyz * sign(p1.w) - 
 float power(float x, float y) { return y != 0.0 ? pow(x,y) : 1.0; }
 float product(float3 x, float3 y) { return max(dot(x,y), 0.0); }
 
-void main(float3 position      : ATTR0,
-          float3 normal        : ATTR1,
-          float2 texcoord      : ATTR2,
-          float4 color         : ATTR3,
+void main(float3 position      : POSITION,
+          float3 normal        : NORMAL,
+          float2 texcoord      : TEXCOORD0,
+          float4 color         : COLOR,
           out float4 oPosition : POSITION,
           out float2 tc        : TEXCOORD0,
           out float4 cpri      : COLOR0,
@@ -27,8 +27,8 @@ void main(float3 position      : ATTR0,
           uniform float4 ecm,
           uniform float srm,
           uniform LightParams lights[4]) {
-    float4 V = mul(modelview, float4(position, 1.0));
-    float3 n = normalize(mul(float3x3(normalmatrix), normal));
+    float4 V = mul(float4(position, 1.0), modelview);
+    float3 n = normalize(mul(normal, float3x3(normalmatrix)));
 
     float3 diff = ecm.rgb + acm.rgb * acs.rgb;
     float3 spec = float3(0.0);
@@ -50,5 +50,5 @@ void main(float3 position      : ATTR0,
     tc = texcoord;
     cpri = color * float4(diff, dcm.a);
     csec = float4(spec, 0.0);
-    oPosition = mul(projection, V);
+    oPosition = mul(V, projection);
 }
