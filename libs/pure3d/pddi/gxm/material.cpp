@@ -71,8 +71,8 @@ SceGxmTextureFilter filterMinTable[5] =
 SceGxmTextureAddrMode uvTable[3] =
 {
     SCE_GXM_TEXTURE_ADDR_REPEAT,
-    SCE_GXM_TEXTURE_ADDR_CLAMP_IGNORE_BORDER,
-    SCE_GXM_TEXTURE_ADDR_CLAMP_IGNORE_BORDER
+    SCE_GXM_TEXTURE_ADDR_CLAMP,
+    SCE_GXM_TEXTURE_ADDR_CLAMP
 };
 
 SceGxmBlendFunc alphaFuncTable[8] =
