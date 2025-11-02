@@ -87,6 +87,7 @@ public:
 
     int  CountDevPasses(void);
     void SetDevPass(unsigned);
+    void PreRender(void);
 
 private:
     gxmContext* context;

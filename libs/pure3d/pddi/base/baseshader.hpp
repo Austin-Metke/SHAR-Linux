@@ -107,19 +107,20 @@ public:
     virtual int  GetPasses(void) = 0;
 
     void SetMaterial(int pass = 0)  
-    { 
+    {
         if(uid != currentUID)
         { 
             if(lastShader) lastShader->PostRender();
             currentUID = uid;  
             lastShader = this;
-            PreRender();
             SetPass(pass);
         }
         else if(GetPasses() != 1)
         {
             SetPass(pass);
         }
+
+        PreRender();
     }
 
     static void ClearCurrentShader(void)

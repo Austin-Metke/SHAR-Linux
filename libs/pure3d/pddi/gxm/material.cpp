@@ -328,7 +328,6 @@ void gxmMat::SetDevPass(unsigned pass)
     }
 
     context->SetFragmentShader(shader);
-    context->SetTextureEnvironment(&texEnv[i], program);
 
     if(texEnv[i].texture)
     {
@@ -342,4 +341,11 @@ void gxmMat::SetDevPass(unsigned pass)
     }
 
     context->EnableCulling(!texEnv[i].twoSided);
+}
+
+void gxmMat::PreRender()
+{
+    int i = 0;
+    if(program)
+        context->SetTextureEnvironment(&texEnv[i], program);
 }
