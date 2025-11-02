@@ -75,7 +75,7 @@ SceGxmTextureAddrMode uvTable[3] =
     SCE_GXM_TEXTURE_ADDR_CLAMP
 };
 
-SceGxmBlendFunc alphaFuncTable[8] =
+SceGxmBlendFunc alphaBlendFunc[8] =
 {
     { SCE_GXM_BLEND_FUNC_ADD },             //PDDI_BLEND_NONE,
     { SCE_GXM_BLEND_FUNC_ADD },             //PDDI_BLEND_ALPHA,
@@ -298,14 +298,6 @@ void gxmMat::SetDevPass(unsigned pass)
 
     if(!valid)
     {
-        // TODO
-        if(texEnv[i].alphaBlendMode == PDDI_BLEND_NONE)
-        {
-        }
-        else
-        {
-        }
-
         if(program)
         {
             if(shader)
@@ -314,7 +306,24 @@ void gxmMat::SetDevPass(unsigned pass)
         }
         program = context->GetFragmentProgram(&texEnv[i]);
         program->AddRef();
-        shader = program->PatchFragmentShader(nullptr, context->GetDisplay()->GetMSAAMode());
+
+        if(texEnv[i].alphaBlendMode == PDDI_BLEND_NONE)
+        {
+            shader = program->PatchFragmentShader(nullptr, context->GetDisplay()->GetMSAAMode());
+        }
+        else
+        {
+            SceGxmBlendInfo blend = {
+                SCE_GXM_COLOR_MASK_ALL,
+                alphaBlendFunc[texEnv[i].alphaBlendMode],
+                alphaBlendFunc[texEnv[i].alphaBlendMode],
+                alphaBlendTable[texEnv[i].alphaBlendMode][0],
+                alphaBlendTable[texEnv[i].alphaBlendMode][1],
+                alphaBlendTable[texEnv[i].alphaBlendMode][0],
+                alphaBlendTable[texEnv[i].alphaBlendMode][1]
+            };
+            shader = program->PatchFragmentShader(&blend, context->GetDisplay()->GetMSAAMode());
+        }
         valid = true;
     }
 
