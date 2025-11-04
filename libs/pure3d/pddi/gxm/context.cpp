@@ -758,13 +758,13 @@ void gxmContext::EnableZBuffer(bool enable)
     if(enable)
     {
         sceGxmSetFrontDepthFunc(context, compTable[state.renderState->zCompare]);
-        sceGxmSetBackDepthWriteEnable(context, state.renderState->zWrite ?
+        sceGxmSetFrontDepthWriteEnable(context, state.renderState->zWrite ?
             SCE_GXM_DEPTH_WRITE_ENABLED : SCE_GXM_DEPTH_WRITE_DISABLED);
     }
     else
     {
         sceGxmSetFrontDepthFunc(context, SCE_GXM_DEPTH_FUNC_ALWAYS);
-        sceGxmSetBackDepthWriteEnable(context, SCE_GXM_DEPTH_WRITE_DISABLED);
+        sceGxmSetFrontDepthWriteEnable(context, SCE_GXM_DEPTH_WRITE_DISABLED);
     }
 }
 
@@ -778,7 +778,7 @@ void gxmContext::SetZCompare(pddiCompareMode compareMode)
 void gxmContext::SetZWrite(bool b)
 {
     pddiBaseContext::SetZWrite(b);
-    sceGxmSetBackDepthWriteEnable(context, b ? SCE_GXM_DEPTH_WRITE_ENABLED : SCE_GXM_DEPTH_WRITE_DISABLED);
+    sceGxmSetFrontDepthWriteEnable(context, b ? SCE_GXM_DEPTH_WRITE_ENABLED : SCE_GXM_DEPTH_WRITE_DISABLED);
 }
 
 void gxmContext::SetZBias(float bias)
