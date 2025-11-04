@@ -114,6 +114,7 @@ protected:
     gxmExtGamma* extGamma;
 
     pddiShader* defaultShader;
+    pddiShader* clearShader;
     pddiVector4* dummyVector;
 
     gxmProgram* vertexProgram;

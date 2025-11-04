@@ -133,11 +133,15 @@ gxmContext::gxmContext(gxmDevice* dev, gxmDisplay* disp) : pddiBaseContext((pddi
 
     defaultShader = new gxmMat(this);
     defaultShader->AddRef();
+    clearShader = new gxmMat(this);
+    clearShader->AddRef();
+    clearShader->SetInt(PDDI_SP_COLOURWRITE, PDDI_WRITE_NONE);
 }
 
 gxmContext::~gxmContext()
 {
     defaultShader->Release();
+    clearShader->Release();
     vertexProgram->Release();
     colorProgram->Release();
     textureProgram->Release();
@@ -211,10 +215,6 @@ void gxmContext::Clear(unsigned bufferMask)
     SetProjectionMode(PDDI_PROJECTION_DEVICE);
     EnableZBuffer(bufferMask & PDDI_BUFFER_DEPTH);
     SetZCompare(PDDI_COMPARE_ALWAYS);
-    if(bufferMask & PDDI_BUFFER_COLOUR)
-        SetColourWrite(true, true, true, true);
-    else
-        SetColourWrite(false, false, false, false);
 
     PushIdentityMatrix(PDDI_MATRIX_MODELVIEW);
     pddiVector a, b, c, d;
@@ -222,7 +222,9 @@ void gxmContext::Clear(unsigned bufferMask)
     b.Set(display->GetWidth(), 0.0f, state.viewState->clearDepth);
     c.Set(0.0f, display->GetHeight(), state.viewState->clearDepth);
     d.Set(display->GetWidth(), display->GetHeight(), state.viewState->clearDepth);
-    pddiPrimStream* stream = BeginPrims(defaultShader, PDDI_PRIM_TRISTRIP, PDDI_V_C, 4);
+    pddiPrimStream* stream = BeginPrims(
+        bufferMask & PDDI_BUFFER_COLOUR ? defaultShader : clearShader,
+        PDDI_PRIM_TRISTRIP, PDDI_V_C, 4);
     stream->Vertex(&a, state.viewState->clearColour);
     stream->Vertex(&b, state.viewState->clearColour);
     stream->Vertex(&c, state.viewState->clearColour);
@@ -751,7 +753,7 @@ SceGxmDepthFunc compTable[8] = {
 void gxmContext::SetColourWrite(bool red, bool green, bool blue, bool alpha)
 {
     pddiBaseContext::SetColourWrite(red, green, blue, alpha);
-    // TODO
+    // NOTE: Colour write mask is handled in the material instead
 }
 
 void gxmContext::EnableZBuffer(bool enable)
