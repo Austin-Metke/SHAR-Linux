@@ -36,7 +36,6 @@ gxmProgram::gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp)
     for(int i = 0; i < PDDI_MAX_LIGHTS; i++)
     {
         std::string prefix = std::string("lights[") + char('0' + i) + "].";
-        lights[i].enabled = sceGxmProgramFindParameterByName(program, (prefix + "enabled").c_str());
         lights[i].position = sceGxmProgramFindParameterByName(program, (prefix + "position").c_str());
         lights[i].colour = sceGxmProgramFindParameterByName(program, (prefix + "colour").c_str());
         lights[i].attenuation = sceGxmProgramFindParameterByName(program, (prefix + "attenuation").c_str());
@@ -47,7 +46,6 @@ gxmProgram::gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp)
     dcm = sceGxmProgramFindParameterByName(program, "dcm");
     scm = sceGxmProgramFindParameterByName(program, "scm");
     ecm = sceGxmProgramFindParameterByName(program, "ecm");
-    srm = sceGxmProgramFindParameterByName(program, "srm");
 
     position = sceGxmProgramFindParameterByName(program, "position");
     normal = sceGxmProgramFindParameterByName(program, "normal");
@@ -83,13 +81,12 @@ void gxmProgram::SetModelViewMatrix(void* buffer, const pddiMatrix* matrix)
 
 void gxmProgram::SetTextureEnvironment(void* buffer, const gxmTextureEnv* texEnv)
 {
-    if(texEnv->lit)
+    if(texEnv && texEnv->lit)
     {
         UniformColour(buffer, acm, texEnv->ambient);
         UniformColour(buffer, ecm, texEnv->emissive);
         UniformColour(buffer, dcm, texEnv->diffuse);
         UniformColour(buffer, scm, texEnv->specular);
-        sceGxmSetUniformDataF(buffer, srm, 0, 1, &texEnv->shininess);
     }
     else
     {
@@ -97,8 +94,6 @@ void gxmProgram::SetTextureEnvironment(void* buffer, const gxmTextureEnv* texEnv
         UniformColour(buffer, ecm, pddiColour(-1));
         UniformColour(buffer, dcm, pddiColour(-1));
         UniformColour(buffer, scm, pddiColour(-1));
-        float shininess = 0.0f;
-        sceGxmSetUniformDataF(buffer, srm, 0, 1, &texEnv->shininess);
     }
 }
 
@@ -113,39 +108,40 @@ void gxmProgram::SetAlphaTest(void* buffer, const gxmTextureEnv* texEnv)
     }
 }
 
-void gxmProgram::SetLightState( void* buffer, int handle, const pddiLight* lightState )
+void gxmProgram::SetLightState( void* buffer, int handle, const pddiLight* lightState, bool lit, float shininess )
 {
     if(handle >= PDDI_MAX_LIGHTS)
         return;
 
-    float dir[4];
-    switch(lightState->type)
+    float dir[4] = { 0.0f };
+    if (lightState->enabled && lit)
     {
-        case PDDI_LIGHT_DIRECTIONAL :
-            dir[0] = -lightState->worldDirection.x;
-            dir[1] = -lightState->worldDirection.y;
-            dir[2] = -lightState->worldDirection.z;
-            dir[3] = 0.0f;
-            break;
+        switch(lightState->type)
+        {
+            case PDDI_LIGHT_DIRECTIONAL :
+                dir[0] = -lightState->worldDirection.x;
+                dir[1] = -lightState->worldDirection.y;
+                dir[2] = -lightState->worldDirection.z;
+                dir[3] = 0.0f;
+                break;
 
-        case PDDI_LIGHT_POINT :
-            dir[0] = lightState->worldPosition.x;
-            dir[1] = lightState->worldPosition.y;
-            dir[2] = lightState->worldPosition.z;
-            dir[3] = 1.0f;
-            break;
+            case PDDI_LIGHT_POINT :
+                dir[0] = lightState->worldPosition.x;
+                dir[1] = lightState->worldPosition.y;
+                dir[2] = lightState->worldPosition.z;
+                dir[3] = 1.0f;
+                break;
 
-        case PDDI_LIGHT_SPOT :
-            PDDIASSERT(0);
-            break;
+            case PDDI_LIGHT_SPOT :
+                PDDIASSERT(0);
+                break;
+        }
     }
 
-    int enabled = lightState->enabled ? 1 : 0;
-    sceGxmSetUniformDataF(buffer, lights[handle].enabled, 0, 1, (float*)&enabled);
     sceGxmSetUniformDataF(buffer, lights[handle].position, 0, 4, dir);
     UniformColour(buffer, lights[handle].colour, lightState->colour);
-    float attenuation[] = { lightState->attenA, lightState->attenB, lightState->attenC };
-    sceGxmSetUniformDataF(buffer, lights[handle].attenuation, 0, 3, attenuation);
+    float attenuation[] = { lightState->attenA, lightState->attenB, lightState->attenC, shininess };
+    sceGxmSetUniformDataF(buffer, lights[handle].attenuation, 0, 4, attenuation);
 }
 
 void gxmProgram::SetAmbientLight(void* buffer, pddiColour ambient)

@@ -24,7 +24,7 @@ public:
     void SetModelViewMatrix( void* buffer, const pddiMatrix* matrix );
     void SetTextureEnvironment( void* buffer, const gxmTextureEnv* texEnv );
     void SetAlphaTest( void* buffer, const gxmTextureEnv* texEnv );
-    void SetLightState( void* buffer, int handle, const pddiLight* lightState );
+    void SetLightState( void* buffer, int handle, const pddiLight* lightState, bool enabled, float shininess );
     void SetAmbientLight( void* buffer, pddiColour ambient );
 
     inline bool SupportsLighting() { return acs != nullptr; }
@@ -47,7 +47,6 @@ protected:
     const SceGxmProgramParameter* alpharef;
     const SceGxmProgramParameter* sampler;
     struct {
-        const SceGxmProgramParameter* enabled;
         const SceGxmProgramParameter* position;
         const SceGxmProgramParameter* colour;
         const SceGxmProgramParameter* attenuation;
@@ -57,7 +56,6 @@ protected:
     const SceGxmProgramParameter* dcm;
     const SceGxmProgramParameter* scm;
     const SceGxmProgramParameter* ecm;
-    const SceGxmProgramParameter* srm;
 
     const SceGxmProgramParameter* position;
     const SceGxmProgramParameter* normal;
