@@ -185,30 +185,6 @@ pglContext::pglContext(pglDevice* dev, pglDisplay* disp) : pddiBaseContext((pddi
 
         "uniform mat4 projection;\n"
         "uniform mat4 modelview;\n"
-
-        "varying vec2 tc;\n"
-        "varying vec4 cpri;\n"
-        "varying vec4 csec;\n"
-
-        "void main() {\n"
-        "    vec4 V = modelview * vec4(position, 1.0);\n"
-        "    tc = texcoord;\n"
-        "    cpri = color;\n"
-        "    csec = vec4(0.0, 0.0, 0.0, 0.0);\n"
-        "    gl_Position = projection * V;\n"
-        "}\n"
-    );
-
-    GLuint litShader = pglProgram::CompileShader(GL_VERTEX_SHADER,
-        "precision highp float;\n"
-
-        "attribute vec3 position;\n"
-        "attribute vec3 normal;\n"
-        "attribute vec2 texcoord;\n"
-        "attribute vec4 color;\n"
-
-        "uniform mat4 projection;\n"
-        "uniform mat4 modelview;\n"
         "uniform mat4 normalmatrix;\n"
 
         // Lights
