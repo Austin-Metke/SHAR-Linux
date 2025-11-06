@@ -146,11 +146,7 @@ gxmMat::~gxmMat()
             texEnv[i].texture->Release();
 
     if(program)
-    {
-        if(shader)
-            program->ReleaseFragmentShader(shader);
         program->Release();
-    }
 }
 
 
@@ -308,11 +304,7 @@ void gxmMat::SetDevPass(unsigned pass)
     if(!valid)
     {
         if(program)
-        {
-            if(shader)
-                program->ReleaseFragmentShader(shader);
             program->Release();
-        }
         program = context->GetFragmentProgram(&texEnv[i]);
         program->AddRef();
 
@@ -336,7 +328,7 @@ void gxmMat::SetDevPass(unsigned pass)
         valid = true;
     }
 
-    context->SetFragmentShader(shader);
+    sceGxmSetFragmentProgram(gxm, shader);
 
     if(texEnv[i].texture)
     {

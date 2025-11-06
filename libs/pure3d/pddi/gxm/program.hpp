@@ -9,6 +9,9 @@
 #include <pddi/pddi.hpp>
 #include <pddi/base/basecontext.hpp>
 #include <pddi/gxm/gxm.hpp>
+
+#include <map>
+
 struct gxmTextureEnv;
 class tFile;
 
@@ -32,13 +35,13 @@ public:
 
     SceGxmVertexProgram* PatchVertexShader(unsigned int vertexType, uint16_t stride);
     SceGxmFragmentProgram* PatchFragmentShader(const SceGxmBlendInfo* blendInfo, SceGxmMultisampleMode msaaMode);
-    void ReleaseVertexShader(SceGxmVertexProgram* shader);
-    void ReleaseFragmentShader(SceGxmFragmentProgram* shader);
 
 protected:
     SceGxmProgram* program;
+    SceGxmProgramType type;
     SceGxmShaderPatcher* shaderPatcher;
     SceGxmShaderPatcherId patcherId;
+    std::map<unsigned, void*> shaderCache;
 
     // Uniform locations
     const SceGxmProgramParameter* projection;

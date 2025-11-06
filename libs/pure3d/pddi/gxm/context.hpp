@@ -87,7 +87,6 @@ public :
 
     // internal pddiglfunctions
     gxmDisplay* GetDisplay(void) {return display;}
-    void SetFragmentShader(SceGxmFragmentProgram* frag);
     gxmProgram* GetFragmentProgram(const gxmTextureEnv* texEnv);
     void SetTextureEnvironment(const gxmTextureEnv* texEnv, gxmProgram* fragProgram);
 
@@ -122,9 +121,7 @@ protected:
     gxmProgram* textureProgram;
     gxmProgram* alphaTestProgram;
 
-    std::map<int, SceGxmVertexProgram*> vertexCache;
     SceGxmVertexProgram* vertexShader;
-    SceGxmFragmentProgram* fragmentShader;
     void* vertexUniformBuffer;
     void* fragmentUniformBuffer;
 
@@ -150,7 +147,6 @@ protected:
 
     pddiMatrix projection;
     std::vector<class pddiPrimBuffer*> streams;
-    std::vector<class SceGxmFragmentProgram*> shaders;
 };
 
 class gxmPrimBufferStream;

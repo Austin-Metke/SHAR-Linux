@@ -6,6 +6,7 @@
 #include <pddi/gxm/program.hpp>
 #include <pddi/gxm/material.hpp>
 #include <p3d/file.hpp>
+#include <radmemory.hpp>
 
 #include <string>
 #include <vector>
@@ -20,12 +21,14 @@ static inline void UniformColour(void* buffer, const SceGxmProgramParameter* par
 gxmProgram::gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp)
     : program()
     , shaderPatcher(patcher)
+    , shaderCache()
 {
     gxp->AddRef();
-    program = (SceGxmProgram*)malloc(gxp->GetSize());
+    program = (SceGxmProgram*)radMemoryAlloc(radMemoryGetCurrentAllocator(), gxp->GetSize());
     gxp->GetData(program, gxp->GetSize());
     gxp->Release();
     CHK_GXM(sceGxmProgramCheck(program));
+    type = sceGxmProgramGetType(program);
 
     projection = sceGxmProgramFindParameterByName(program, "projection");
     modelview = sceGxmProgramFindParameterByName(program, "modelview");
@@ -57,7 +60,24 @@ gxmProgram::gxmProgram(SceGxmShaderPatcher* patcher, tFile* gxp)
 
 gxmProgram::~gxmProgram()
 {
-    free(program);
+    for(std::pair<unsigned, void*> shader : shaderCache)
+    {
+        switch(type)
+        {
+        case SCE_GXM_VERTEX_PROGRAM:
+            sceGxmShaderPatcherReleaseVertexProgram(shaderPatcher,
+                reinterpret_cast<SceGxmVertexProgram*>(shader.second));
+            break;
+        case SCE_GXM_FRAGMENT_PROGRAM:
+            sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher,
+                reinterpret_cast<SceGxmFragmentProgram*>(shader.second));
+            break;
+        default:
+            PDDIASSERT(false);
+            break;
+        }
+    }
+    radMemoryFree(program);
 }
 
 void gxmProgram::SetProjectionMatrix(void* buffer, const pddiMatrix* matrix)
@@ -157,6 +177,11 @@ SceGxmVertexProgram* gxmProgram::PatchVertexShader(unsigned int vertexType, uint
     uint16_t offset = 0;
     int attr = 0, strm = 0;
 
+    PDDIASSERT(type == SCE_GXM_VERTEX_PROGRAM);
+    vert = reinterpret_cast<SceGxmVertexProgram*>(shaderCache[vertexType]);
+    if(vert)
+        return vert;
+
     SceGxmVertexAttribute vertexAttributes[4];
     SceGxmVertexStream vertexStreams[2];
     vertexAttributes[attr].streamIndex = 0;
@@ -248,6 +273,13 @@ SceGxmVertexProgram* gxmProgram::PatchVertexShader(unsigned int vertexType, uint
 SceGxmFragmentProgram* gxmProgram::PatchFragmentShader(const SceGxmBlendInfo* blendInfo, SceGxmMultisampleMode msaaMode)
 {
     SceGxmFragmentProgram* frag = nullptr;
+    PDDIASSERT(type == SCE_GXM_FRAGMENT_PROGRAM);
+
+    unsigned int key = blendInfo ? *reinterpret_cast<const unsigned int*>(blendInfo) : 0;
+    frag = reinterpret_cast<SceGxmFragmentProgram*>(shaderCache[key]);
+    if(frag)
+        return frag;
+
     CHK_GXM(sceGxmShaderPatcherCreateFragmentProgram(
         shaderPatcher,
         patcherId,
@@ -257,14 +289,4 @@ SceGxmFragmentProgram* gxmProgram::PatchFragmentShader(const SceGxmBlendInfo* bl
         NULL,
         &frag));
     return frag;
-}
-
-void gxmProgram::ReleaseVertexShader(SceGxmVertexProgram* shader)
-{
-    CHK_GXM(sceGxmShaderPatcherReleaseVertexProgram(shaderPatcher, shader));
-}
-
-void gxmProgram::ReleaseFragmentShader(SceGxmFragmentProgram* shader)
-{
-    CHK_GXM(sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, shader));
 }

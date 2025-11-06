@@ -57,7 +57,6 @@ gxmContext::gxmContext(gxmDevice* dev, gxmDisplay* disp) : pddiBaseContext((pddi
     display = disp;
     context = display->GetGXMContext();
     vertexShader = nullptr;
-    fragmentShader = nullptr;
 
     device->AddRef();
     display->AddRef();
@@ -172,9 +171,6 @@ void gxmContext::BeginFrame()
     for(pddiPrimBuffer* buffer : streams)
         buffer->Release();
     streams.clear();
-    for(SceGxmFragmentProgram* shader : shaders)
-        CHK_GXM(sceGxmShaderPatcherReleaseFragmentProgram(shaderPatcher, shader));
-    shaders.clear();
 
     CHK_GXM(sceGxmBeginScene(
         context,
@@ -937,32 +933,12 @@ float gxmContext::EndTiming(void)
 
 void gxmContext::SetVertexShader(unsigned int vertexType, uint16_t stride)
 {
-    SceGxmVertexProgram* vert = vertexCache[vertexType];
-    if(!vert)
-    {
-        vert = vertexProgram->PatchVertexShader(vertexType, stride);
-        vertexCache[vertexType] = vert;
-    }
-
+    SceGxmVertexProgram* vert = vertexProgram->PatchVertexShader(vertexType, stride);
     if(vert != vertexShader)
     {
         vertexShader = vert;
         sceGxmSetVertexProgram(context, vert);
     }
-}
-
-void gxmContext::SetFragmentShader(SceGxmFragmentProgram* frag)
-{
-    if(frag == fragmentShader)
-        return;
-
-    fragmentShader = frag;
-    sceGxmSetFragmentProgram(context, frag);
-    if(!frag)
-        return;
-
-    shaders.push_back(fragmentShader);
-    CHK_GXM(sceGxmShaderPatcherAddRefFragmentProgram(shaderPatcher, fragmentShader));
 }
 
 gxmProgram* gxmContext::GetFragmentProgram(const gxmTextureEnv* texEnv)
