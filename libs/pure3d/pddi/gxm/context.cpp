@@ -135,6 +135,10 @@ gxmContext::gxmContext(gxmDevice* dev, gxmDisplay* disp) : pddiBaseContext((pddi
     clearShader = new gxmMat(this);
     clearShader->AddRef();
     clearShader->SetInt(PDDI_SP_COLOURWRITE, PDDI_WRITE_NONE);
+
+    streamsTail = 0;
+    streamsHead = SceGxmNotification{ sceGxmGetNotificationRegion() };
+    memset(streams, 0, sizeof(streams));
 }
 
 gxmContext::~gxmContext()
@@ -167,10 +171,7 @@ void gxmContext::BeginFrame()
 {
     pddiBaseContext::BeginFrame();
 
-    sceGxmFinish(context);
-    for(pddiPrimBuffer* buffer : streams)
-        buffer->Release();
-    streams.clear();
+    FlushVertexStreams();
 
     CHK_GXM(sceGxmBeginScene(
         context,
@@ -197,7 +198,7 @@ void gxmContext::EndFrame()
 {
     pddiBaseContext::EndFrame();
 
-    CHK_GXM(sceGxmEndScene(context, NULL, NULL));
+    CHK_GXM(sceGxmEndScene(context, &streamsHead, NULL));
     CHK_GXM(sceGxmPadHeartbeat(display->GetColorSurface(), display->GetFragementSyncObj()));
 }
 
@@ -358,9 +359,18 @@ pddiPrimStream* gxmContext::BeginPrims(pddiShader* mat, pddiPrimType primType, u
     pddiPrimBufferDesc desc(primType, vertexType, vertexCount);
     thePrimStream.buffer = device->NewPrimBuffer(&desc);
     thePrimStream.stream = thePrimStream.buffer->Lock();
-    streams.push_back(thePrimStream.buffer);
-    SetVertexShader(vertexType, ((gxmPrimBuffer*)thePrimStream.buffer)->GetStride());
 
+    if((streamsHead.value + 1) % BUFFERED_VERTS == streamsTail)
+    {
+        rDebugString("Vertex stream ring-buffer is full! Waiting for mid-scene flush, consider increasing BUFFERED_VERTS.");
+        CHK_GXM(sceGxmMidSceneFlush(context, 0, NULL, &streamsHead));
+        CHK_GXM(sceGxmNotificationWait(&streamsHead));
+        FlushVertexStreams();
+    }
+    streamsHead.value = (streamsHead.value + 1) % BUFFERED_VERTS;
+    streams[streamsHead.value] = thePrimStream.buffer;
+
+    SetVertexShader(vertexType, ((gxmPrimBuffer*)thePrimStream.buffer)->GetStride());
     pddiBaseShader* material = (pddiBaseShader*)mat;
     ADD_STAT(PDDI_STAT_MATERIAL_OPS, !material->IsCurrent());
     material->SetMaterial();
@@ -938,6 +948,17 @@ void gxmContext::SetVertexShader(unsigned int vertexType, uint16_t stride)
     {
         vertexShader = vert;
         sceGxmSetVertexProgram(context, vert);
+    }
+}
+
+void gxmContext::FlushVertexStreams()
+{
+    while(streamsTail != *streamsHead.address)
+    {
+        if(streams[streamsTail])
+            streams[streamsTail]->Release();
+        streams[streamsTail] = NULL;
+        streamsTail = (streamsTail + 1) % BUFFERED_VERTS;
     }
 }
 

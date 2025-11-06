@@ -102,6 +102,7 @@ protected:
     float EndTiming(void);
 
     void SetVertexShader(unsigned int vertexType, uint16_t stride);
+    void FlushVertexStreams();
 
     static void* patcherHostAlloc(void* userData, uint32_t size);
     static void patcherHostFree(void* userData, void* mem);
@@ -146,7 +147,11 @@ protected:
 //   float alphaRef;
 
     pddiMatrix projection;
-    std::vector<class pddiPrimBuffer*> streams;
+
+    // Circular vertex stream buffer array
+    unsigned int streamsTail;
+    SceGxmNotification streamsHead;
+    class pddiPrimBuffer* streams[BUFFERED_VERTS];
 };
 
 class gxmPrimBufferStream;
