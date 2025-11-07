@@ -139,6 +139,7 @@ gxmContext::gxmContext(gxmDevice* dev, gxmDisplay* disp) : pddiBaseContext((pddi
     streamsTail = 0;
     streamsHead = SceGxmNotification{ sceGxmGetNotificationRegion() };
     memset(streams, 0, sizeof(streams));
+    *sceGxmGetNotificationRegion() = 0;
 }
 
 gxmContext::~gxmContext()
