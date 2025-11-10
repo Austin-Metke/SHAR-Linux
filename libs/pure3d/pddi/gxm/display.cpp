@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <vitasdk.h>
 
 // Enable the following define to allow Razor HUD.
 //#define ENABLE_RAZOR_HUD
@@ -142,7 +143,8 @@ bool gxmDisplay::InitDisplay(const pddiDisplayInit* init)
 #ifdef ENABLE_RAZOR_GPU_CAPTURE
     // Initialize the Razor capture system.
     // This should be done before the call to sceGxmInitialize().
-    sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE);
+    //sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE);
+    sceKernelLoadStartModule("ux0:data/librazorcapture_es4.suprx", 0, NULL, 0, NULL, NULL);
 
     // Trigger a capture after 100 frames.
     sceRazorGpuCaptureSetTrigger(10000, "ux0:data/srr2.sgx");

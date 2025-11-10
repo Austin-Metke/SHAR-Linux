@@ -1477,6 +1477,7 @@ if(VITA)
 		SceCtrl_stub
 		taihen_stub
 		SceKernelDmacMgr_stub
+		SceRazorCapture_stub_weak
 	)
 endif()
 if(SRR2_USE_BINK)
