@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(CHOREO_SOURCES
 	"src/animation.cpp"
 	"src/bank.cpp"

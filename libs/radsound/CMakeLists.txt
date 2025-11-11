@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(RADSOUND_SOURCES
 	"src/common/radsoundobject.cpp"
 	"src/common/radsoundupdatableobject.cpp"

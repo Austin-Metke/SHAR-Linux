@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(POSER_SOURCES
 	"src/joint.cpp"
 	"src/pose.cpp"

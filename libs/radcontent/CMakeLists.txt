@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(RADCONTENT_SOURCES
 	"src/radload/request.cpp"
 	"src/radload/queue.cpp"

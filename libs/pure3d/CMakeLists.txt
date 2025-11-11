@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(P3D_SOURCES
 	"p3d/ambientlight.cpp"
 	"p3d/anim/animate.cpp"

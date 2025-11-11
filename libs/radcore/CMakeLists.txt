@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(RADCORE_SOURCES
 	#"src/pch/pch.cpp"
 	#"src/rad1394/win32lib/rad1394master.cpp"

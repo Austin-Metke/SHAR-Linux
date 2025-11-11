@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(SIM_SOURCES
 	"simcollision/collisionanalyser.cpp"
 	"simcollision/collisionanalyserdata.cpp"

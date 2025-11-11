@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(SCROOBY_SOURCES
 	"src/FeApp.cpp"
 	"src/FeBoundedDrawable.cpp"

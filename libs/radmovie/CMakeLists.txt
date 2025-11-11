@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 if(SRR2_USE_BINK)
 	set(BINK_SOURCES
 		"../sdks/bink/binkacd.cpp"

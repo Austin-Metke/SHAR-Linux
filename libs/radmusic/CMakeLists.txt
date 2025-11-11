@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(RADMUSIC_SOURCES
 	"src/memory/memory.cpp"
 	"src/ods/ods_codegen.cpp"

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set(RADSCRIPT_SOURCES
 	"src/factory/radfactory.cpp"
 	"src/namespace/namespace.cpp"
