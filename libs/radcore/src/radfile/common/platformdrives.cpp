@@ -9,7 +9,9 @@
 #include "platformdrives.hpp"
 #include "remotedrive.hpp"
 
-#ifdef RAD_SDL
+#if defined(RAD_VITA)
+#include "../vita/vitadrive.hpp"
+#elif defined(RAD_WIN32) || defined(RAD_SDL)
 #include "../sdl/sdldrive.hpp"
 #endif
 
@@ -205,7 +207,9 @@ void PlatformDrivesFactory( radDrive** ppDrive, const char* driveSpec, radMemory
         return;
     }
 
-#ifdef RAD_WIN32 
+#if defined(RAD_VITA)
+    radVitaDriveFactory( ppDrive, driveSpec, alloc );
+#elif defined(RAD_WIN32) || defined(RAD_SDL)
     radSdlDriveFactory( ppDrive, driveSpec, alloc );
 #endif
 

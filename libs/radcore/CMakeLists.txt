@@ -26,7 +26,6 @@ set(RADCORE_SOURCES
 	"src/radfile/common/radfile.cpp"
 	"src/radfile/common/remotedrive.cpp"
 	"src/radfile/common/requests.cpp"
-	"src/radfile/sdl/sdldrive.cpp"
 	"src/radkey/radkey.cpp"
 	"src/radmemory/align.cpp"
 	"src/radmemory/binallocator.cpp"
@@ -70,6 +69,11 @@ set(RADCORE_SOURCES
 	"src/radtime/time.cpp"
 )
 
+if(VITA)
+	list(APPEND RADCORE_SOURCES	"src/radfile/vita/vitadrive.cpp")
+else()
+	list(APPEND RADCORE_SOURCES	"src/radfile/sdl/sdldrive.cpp")
+endif()
 if(SRR2_MICROPROFILE)
 	list(APPEND RADCORE_SOURCES	"src/radprofiler/microprofile.cpp")
 endif()

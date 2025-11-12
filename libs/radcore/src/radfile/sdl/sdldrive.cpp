@@ -245,7 +245,7 @@ radDrive::CompletionStatus radSdlDrive::OpenFile
     }
 
 #if SDL_MAJOR_VERSION < 3
-    * pHandle = SDL_RWFromFile(fullName, createFlags);
+    *pHandle = SDL_RWFromFile(fullName, createFlags);
 #else
     *pHandle = SDL_IOFromFile( fullName, createFlags );
 #endif
@@ -396,6 +396,7 @@ radDrive::CompletionStatus radSdlDrive::WriteFile
     return Error;
 }
 
+#if SDL_MAJOR_VERSION > 2
 //=============================================================================
 // Function:    radSdlDrive::FindFirst
 //=============================================================================
@@ -408,9 +409,6 @@ radDrive::CompletionStatus radSdlDrive::FindFirst
     bool                        firstSearch
 )
 {
-#if SDL_MAJOR_VERSION < 3
-    return Error;
-#else
     //
     // Find first
     //
@@ -452,7 +450,6 @@ radDrive::CompletionStatus radSdlDrive::FindFirst
     {
         return Error;
     }
-#endif
 }
 
 //=============================================================================
@@ -461,9 +458,6 @@ radDrive::CompletionStatus radSdlDrive::FindFirst
 
 radDrive::CompletionStatus radSdlDrive::FindNext( radFileDirHandle* pHandle, IRadDrive::DirectoryInfo* pDirectoryInfo )
 {
-#if SDL_MAJOR_VERSION < 3
-    return Error;
-#else
     //
     // If we don't have a handle, return file not found.
     //
@@ -494,7 +488,6 @@ radDrive::CompletionStatus radSdlDrive::FindNext( radFileDirHandle* pHandle, IRa
         m_LastError = FileNotFound;
         return Error;
     }
-#endif
 }
 
 //=============================================================================
@@ -518,9 +511,6 @@ radDrive::CompletionStatus radSdlDrive::CreateDir( const char* pName )
     rWarningMsg( m_Capabilities & radDriveDirectory, 
         "This drive does not support the CreateDir function." );
 
-#if SDL_MAJOR_VERSION < 3
-    return Error;
-#else
     //
     // Build the full filename
     //
@@ -537,7 +527,6 @@ radDrive::CompletionStatus radSdlDrive::CreateDir( const char* pName )
         m_LastError = FileNotFound;
         return Error;
     }
-#endif
 }
 
 //=============================================================================
@@ -549,9 +538,6 @@ radDrive::CompletionStatus radSdlDrive::DestroyDir( const char* pName )
     rWarningMsg( m_Capabilities & radDriveDirectory,
         "This drive does not support the DestroyDir function." );
 
-#if SDL_MAJOR_VERSION < 3
-    return Error;
-#else
     //
     // Someday check if pName is a dir!
     //
@@ -572,7 +558,6 @@ radDrive::CompletionStatus radSdlDrive::DestroyDir( const char* pName )
         m_LastError = FileNotFound;
         return Error;
     }
-#endif
 }
 
 //=============================================================================
@@ -583,9 +568,6 @@ radDrive::CompletionStatus radSdlDrive::DestroyFile( const char* filename )
 {
     rWarningMsg( m_Capabilities & radDriveWriteable, "This drive does not support the DestroyFile function." );
 
-#if SDL_MAJOR_VERSION < 3
-    return Error;
-#else
     //
     // Someday check if the file is open!
     //
@@ -606,8 +588,8 @@ radDrive::CompletionStatus radSdlDrive::DestroyFile( const char* filename )
         m_LastError = FileNotFound;
         return Error;
     }
-#endif
 }
+#endif
 
 //=============================================================================
 // Private Member Functions

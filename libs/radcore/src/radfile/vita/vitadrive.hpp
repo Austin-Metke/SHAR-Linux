@@ -22,7 +22,6 @@
 //=============================================================================
 // Include Files
 //=============================================================================
-#include <SDL.h>
 #include "../common/drive.hpp"
 #include "../common/drivethread.hpp"
 
@@ -33,7 +32,7 @@
 //
 // Disk read alignment values.
 //
-#define SDL_DEFAULT_SECTOR_SIZE  512
+#define VITA_DEFAULT_SECTOR_SIZE  512
 
 //=============================================================================
 // Public Functions
@@ -42,13 +41,13 @@
 //
 // Every physical drive type must provide a drive factory.
 //
-void radSdlDriveFactory( radDrive** ppDrive, const char* driveSpec, radMemoryAllocator alloc );
+void radVitaDriveFactory( radDrive** ppDrive, const char* driveSpec, radMemoryAllocator alloc );
 
 /*
 //
-// Constructs a cached version of the SDL drive
+// Constructs a cached version of the Vita drive
 //
-void radSdlCacheDriveFactory( radDrive** ppDrive,
+void radVitaCacheDriveFactory( radDrive** ppDrive,
                                 radDrive* pOriginalDrive,
                                 radFileSystem* pFileSystem,
                                 const char* driveSpec,
@@ -60,17 +59,17 @@ void radSdlCacheDriveFactory( radDrive** ppDrive,
 //=============================================================================
 
 //
-// This is an SDL Drive. It implements the appropriate radDrive members. 
+// This is a Vita Drive. It implements the appropriate radDrive members. 
 //
-class radSdlDrive : public radDrive
+class radVitaDrive : public radDrive
 {
 public:
 
     //
     // Constructor / destructor.
     //
-    radSdlDrive( const char* pdrivespec, radMemoryAllocator alloc );
-    virtual ~radSdlDrive( void );
+    radVitaDrive( const char* pdrivespec, radMemoryAllocator alloc );
+    virtual ~radVitaDrive( void );
 
     void Lock( void );
     void Unlock( void );
@@ -111,31 +110,9 @@ public:
                                 unsigned int*     size, 
                                 radMemorySpace    pDataSpace );
 
-#if SDL_MAJOR_VERSION > 2
-    CompletionStatus FindFirst( const char*                 searchSpec, 
-                                IRadDrive::DirectoryInfo*   pDirectoryInfo, 
-                                radFileDirHandle*           pHandle,
-                                bool                        firstSearch );
-
-    CompletionStatus FindNext( radFileDirHandle* pHandle, IRadDrive::DirectoryInfo* pDirectoryInfo );
-
-    CompletionStatus FindClose( radFileDirHandle* pHandle );
-
-    CompletionStatus CreateDir( const char* pName );
-
-    CompletionStatus DestroyDir( const char* pName );   
-
-    CompletionStatus DestroyFile( const char* filename );
-#endif
-
 private:
     void SetMediaInfo( void );
     void BuildFileSpec( const char* fileName, char* fullName, unsigned int size );
-#if SDL_MAJOR_VERSION > 2
-    radFileError TranslateDirInfo( IRadDrive::DirectoryInfo*   pDirectoryInfo,
-                                   const SDL_PathInfo*         pPathInfo,
-                                   const radFileDirHandle*     pHandle );
-#endif
 
     unsigned int    m_Capabilities;
     unsigned int    m_OpenFiles;
