@@ -5,24 +5,24 @@
 
 //=============================================================================
 //
-// File:        win32drive.hpp
+// File:        sdldrive.hpp
 //
 // Subsystem:	Radical Drive System
 //
 // Description:	This file contains all definitions and classes relevant to
-//              a WIN32 physical drive.
+//              a SDL physical drive.
 //
 // Revisions:	
 //
 //=============================================================================
 
-#ifndef	WIN32DRIVE_HPP
-#define WIN32DRIVE_HPP
+#ifndef	SDLDRIVE_HPP
+#define SDLDRIVE_HPP
 
 //=============================================================================
 // Include Files
 //=============================================================================
-#include <windows.h>
+#include <SDL.h>
 #include "../common/drive.hpp"
 #include "../common/drivethread.hpp"
 
@@ -33,7 +33,7 @@
 //
 // Disk read alignment values.
 //
-#define WIN32_DEFAULT_SECTOR_SIZE  512
+#define SDL_DEFAULT_SECTOR_SIZE  512
 
 //=============================================================================
 // Public Functions
@@ -42,13 +42,13 @@
 //
 // Every physical drive type must provide a drive factory.
 //
-void radWin32DriveFactory( radDrive** ppDrive, const char* driveSpec, radMemoryAllocator alloc );
+void radSdlDriveFactory( radDrive** ppDrive, const char* driveSpec, radMemoryAllocator alloc );
 
 /*
 //
 // Constructs a cached version of the Win32 drive
 //
-void radWin32CacheDriveFactory( radDrive** ppDrive,
+void radSdlCacheDriveFactory( radDrive** ppDrive,
                                 radDrive* pOriginalDrive,
                                 radFileSystem* pFileSystem,
                                 const char* driveSpec,
@@ -62,15 +62,15 @@ void radWin32CacheDriveFactory( radDrive** ppDrive,
 //
 // This is a Win32 Drive. It implements the appropriate radDrive members. 
 //
-class radWin32Drive : public radDrive
+class radSdlDrive : public radDrive
 {
 public:
 
     //
     // Constructor / destructor.
     //
-    radWin32Drive( const char* pdrivespec, radMemoryAllocator alloc );
-    virtual ~radWin32Drive( void );
+    radSdlDrive( const char* pdrivespec, radMemoryAllocator alloc );
+    virtual ~radSdlDrive( void );
 
     void Lock( void );
     void Unlock( void );
@@ -127,18 +127,18 @@ public:
     CompletionStatus DestroyFile( const char* filename );
 
 private:
-    DWORD SetMediaInfo( void );
+    void SetMediaInfo( void );
     void BuildFileSpec( const char* fileName, char* fullName, unsigned int size );
-    radFileError TranslateError( DWORD windowsError );
-    radFileError TranslateDirInfo( IRadDrive::DirectoryInfo*   pDirectoryInfo, 
-                                   const WIN32_FIND_DATA*      pFindData,
+#if SDL_MAJOR_VERSION > 2
+    radFileError TranslateDirInfo( IRadDrive::DirectoryInfo*   pDirectoryInfo,
+                                   const SDL_PathInfo*         pPathInfo,
                                    const radFileDirHandle*     pHandle );
+#endif
 
     unsigned int    m_Capabilities;
-    UINT            m_OldErrorSetting;
     unsigned int    m_OpenFiles;
     char            m_DriveName[ radFileDrivenameMax + 1 ];
-    DWORD           m_SerialNumber;
+    char            m_DrivePath[ radFileFilenameMax + 1 ];
 
     //
     // Mutex for critical sections
@@ -146,5 +146,5 @@ private:
     IRadThreadMutex*    m_pMutex;
 };
 
-#endif // WIN32DRIVE_HPP
+#endif // SDLDRIVE_HPP
 

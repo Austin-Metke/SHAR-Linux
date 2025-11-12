@@ -9,8 +9,8 @@
 #include "platformdrives.hpp"
 #include "remotedrive.hpp"
 
-#ifdef RAD_WIN32
-#include "../win32/win32drive.hpp"
+#ifdef RAD_SDL
+#include "../sdl/sdldrive.hpp"
 #endif
 
 #ifdef RAD_XBOX
@@ -206,7 +206,7 @@ void PlatformDrivesFactory( radDrive** ppDrive, const char* driveSpec, radMemory
     }
 
 #ifdef RAD_WIN32 
-    radWin32DriveFactory( ppDrive, driveSpec, alloc );
+    radSdlDriveFactory( ppDrive, driveSpec, alloc );
 #endif
 
 #ifdef RAD_XBOX 

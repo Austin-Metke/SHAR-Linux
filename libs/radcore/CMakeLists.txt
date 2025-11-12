@@ -26,7 +26,7 @@ set(RADCORE_SOURCES
 	"src/radfile/common/radfile.cpp"
 	"src/radfile/common/remotedrive.cpp"
 	"src/radfile/common/requests.cpp"
-	"src/radfile/win32/win32drive.cpp"
+	"src/radfile/sdl/sdldrive.cpp"
 	"src/radkey/radkey.cpp"
 	"src/radmemory/align.cpp"
 	"src/radmemory/binallocator.cpp"
@@ -80,5 +80,4 @@ target_include_directories(radcore
 	PRIVATE "src/pch/" # TODO
 	PUBLIC "${CMAKE_SOURCE_DIR}/code/" # wtf (radobject.hpp includes memory/classsizetracker.h)
 )
-target_compile_features(radcore PUBLIC cxx_std_17)
 target_link_libraries(radcore ${SDL_LIBRARY})

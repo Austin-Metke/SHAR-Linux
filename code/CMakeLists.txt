@@ -588,7 +588,6 @@ if(SRR2_USE_BINK)
 else()
 	target_link_libraries(${PROJECT_NAME} PkgConfig::FFmpeg)
 endif()
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 option(SRR2_USE_PCH ON)
 if (SRR2_USE_PCH)

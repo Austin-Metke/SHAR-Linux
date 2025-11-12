@@ -5,11 +5,11 @@
 
 //=============================================================================
 //
-// File:        win32drive.cpp
+// File:        sdldrive.cpp
 //
 // Subsystem:   Radical Drive System
 //
-// Description:	This file contains the implementation of the radWin32Drive class.
+// Description:	This file contains the implementation of the radSdlDrive class.
 //
 // Revisions:
 //
@@ -23,17 +23,27 @@
 //=============================================================================
 
 #include "pch.hpp"
+#include <algorithm>
 #include <limits.h>
-#include "win32drive.hpp"
+#include "sdldrive.hpp"
+#include <string>
+#include <SDL.h>
+#if SDL_MAJOR_VERSION < 3
+#ifdef WIN32
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+#endif
 
 //=============================================================================
 // Public Functions 
 //=============================================================================
 
 //=============================================================================
-// Function:    radWin32DriveFactory
+// Function:    radSdlDriveFactory
 //=============================================================================
-// Description: This member is responsible for constructing a radWin32DriveObject.
+// Description: This member is responsible for constructing a radSdlDriveObject.
 //
 // Parameters:  pointer to receive drive object
 //              pointer to the drive name
@@ -42,7 +52,7 @@
 // Returns:     
 //------------------------------------------------------------------------------
 
-void radWin32DriveFactory
+void radSdlDriveFactory
 ( 
     radDrive**         ppDrive, 
     const char*        pDriveName,
@@ -52,7 +62,7 @@ void radWin32DriveFactory
     //
     // Simply constuct the drive object.
     //
-    *ppDrive = new( alloc ) radWin32Drive( pDriveName, alloc );
+    *ppDrive = new( alloc ) radSdlDrive( pDriveName, alloc );
     rAssert( *ppDrive != NULL );
 }
 
@@ -62,18 +72,15 @@ void radWin32DriveFactory
 //=============================================================================
 
 //=============================================================================
-// Function:    radWin32Drive::radWin32Drive
+// Function:    radSdlDrive::radSdlDrive
 //=============================================================================
 
-radWin32Drive::radWin32Drive( const char* pdrivespec, radMemoryAllocator alloc )
+radSdlDrive::radSdlDrive( const char* pdrivespec, radMemoryAllocator alloc )
     : 
     radDrive( ),
     m_OpenFiles( 0 ),
-    m_SerialNumber( 0 ),
     m_pMutex( NULL )
 {
-    m_OldErrorSetting = ::SetErrorMode( SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS );
-
     //
     // Create a mutex for lock/unlock
     //
@@ -89,41 +96,54 @@ radWin32Drive::radWin32Drive( const char* pdrivespec, radMemoryAllocator alloc )
     //
     // Copy the drivename
     //
-    strncpy( m_DriveName, pdrivespec, radFileDrivenameMax );
-    m_DriveName[ radFileDrivenameMax ] = '\0';
+    radGetDefaultDrive( m_DriveName );
+    if ( strcmp(m_DriveName, pdrivespec ) != 0 )
+    {
+        strncpy( m_DriveName, pdrivespec, radFileDrivenameMax );
+        strncpy( m_DrivePath, pdrivespec, radFileFilenameMax );
+        m_DriveName[radFileDrivenameMax] = '\0';
+        m_DrivePath[radFileFilenameMax] = '\0';
+        SDL_strupr( m_DriveName );
+        SDL_strlwr( m_DrivePath );
+    }
 
-    //
-    // Determine the type of drive and set our capabities under Win32
-    //
-    UINT dType = ::GetDriveType( pdrivespec );
- 
-    if( dType == DRIVE_CDROM )
+    if(!m_DrivePath[0])
     {
-        m_Capabilities = ( radDriveRemovable | radDriveEnumerable | radDriveFile );
+#if SDL_MAJOR_VERSION < 3
+#ifdef WIN32
+        _getcwd( m_DrivePath, radFileFilenameMax );
+        strncat(m_DrivePath, "/", radFileFilenameMax);
+#else
+        getcwd( m_DrivePath, radFileFilenameMax );
+        strncat(m_DrivePath, "/", radFileFilenameMax);
+#endif
+#else
+        char* cwd = SDL_GetCurrentDirectory();
+        strncpy(m_DrivePath, cwd, radFileFilenameMax);
+        SDL_free(cwd);
+#endif
+        m_DrivePath[radFileFilenameMax] = '\0';
     }
-    else if( dType == DRIVE_REMOVABLE )
-    {
-        m_Capabilities = ( radDriveRemovable | radDriveEnumerable | radDriveWriteable | radDriveDirectory | radDriveFile);
-    }
-    else 
-    {
-        m_Capabilities = ( radDriveEnumerable | radDriveWriteable | radDriveDirectory | radDriveFile );
-    }
+
+#if SDL_MAJOR_VERSION < 3
+    m_Capabilities = ( radDriveWriteable | radDriveFile );
+#else
+    m_Capabilities = ( radDriveEnumerable | radDriveWriteable | radDriveDirectory | radDriveFile );
+#endif
 }
 
 //=============================================================================
-// Function:    radWin32Drive::~radWin32Drive
+// Function:    radSdlDrive::~radSdlDrive
 //=============================================================================
 
-radWin32Drive::~radWin32Drive( void )
+radSdlDrive::~radSdlDrive( void )
 {
     m_pMutex->Release( );
     m_pDriveThread->Release( );
-    SetErrorMode( m_OldErrorSetting );
 }
 
 //=============================================================================
-// Function:    radWin32Drive::Lock
+// Function:    radSdlDrive::Lock
 //=============================================================================
 // Description: Start a critical section
 //
@@ -132,13 +152,13 @@ radWin32Drive::~radWin32Drive( void )
 // Returns:     
 //------------------------------------------------------------------------------
 
-void radWin32Drive::Lock( void )
+void radSdlDrive::Lock( void )
 {
     m_pMutex->Lock( );
 }
 
 //=============================================================================
-// Function:    radWin32Drive::Unlock
+// Function:    radSdlDrive::Unlock
 //=============================================================================
 // Description: End a critical section
 //
@@ -147,16 +167,16 @@ void radWin32Drive::Lock( void )
 // Returns:     
 //------------------------------------------------------------------------------
 
-void radWin32Drive::Unlock( void )
+void radSdlDrive::Unlock( void )
 {
     m_pMutex->Unlock( );
 }
 
 //=============================================================================
-// Function:    radWin32Drive::GetCapabilities
+// Function:    radSdlDrive::GetCapabilities
 //=============================================================================
 
-unsigned int radWin32Drive::GetCapabilities( void )
+unsigned int radSdlDrive::GetCapabilities( void )
 {
     return m_Capabilities;
 }
@@ -165,33 +185,18 @@ unsigned int radWin32Drive::GetCapabilities( void )
 // Function:    radGcnDVDDrive::GetDriveName
 //=============================================================================
 
-const char* radWin32Drive::GetDriveName( void )
+const char* radSdlDrive::GetDriveName( void )
 {
     return m_DriveName;
 }
 
 //=============================================================================
-// Function:    radWin32Drive::Initialize
+// Function:    radSdlDrive::Initialize
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::Initialize( void )
+radDrive::CompletionStatus radSdlDrive::Initialize( void )
 {
-    if ( m_OpenFiles != 0 )
-    {
-        //
-        // Check if there was a media change
-        //
-        if ( SetMediaInfo( ) != m_SerialNumber )
-        {
-            m_LastError = m_MediaInfo.m_MediaState == IRadDrive::MediaInfo::MediaNotPresent ? NoMedia : WrongMedia;
-            return Error;
-        }
-    }
-    else
-    {
-        SetMediaInfo( );
-        m_SerialNumber = 0;
-    }
+    SetMediaInfo();
 
     //
     // Success
@@ -201,10 +206,10 @@ radDrive::CompletionStatus radWin32Drive::Initialize( void )
 }
 
 //=============================================================================
-// Function:    radWin32Drive::OpenFile
+// Function:    radSdlDrive::OpenFile
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::OpenFile
+radDrive::CompletionStatus radSdlDrive::OpenFile
 ( 
     const char*         fileName, 
     radFileOpenFlags    flags, 
@@ -212,7 +217,7 @@ radDrive::CompletionStatus radWin32Drive::OpenFile
     radFileHandle*      pHandle, 
     unsigned int*       pSize 
 )
-{    
+{
     //
     // Build the full filename
     //
@@ -220,73 +225,69 @@ radDrive::CompletionStatus radWin32Drive::OpenFile
     BuildFileSpec( fileName, fullName, radFileFilenameMax + 1 );
 
     //
-    // Translate flags to windows
+    // Translate flags to SDL
     //
-    DWORD accessFlag = writeAccess ? GENERIC_READ | GENERIC_WRITE : GENERIC_READ;
-    DWORD sharingFlag = writeAccess ? FILE_SHARE_READ | FILE_SHARE_WRITE : FILE_SHARE_READ;                
-    DWORD createFlags;    
+    const char* createFlags;
     switch( flags )
     {
     case OpenExisting:
-        createFlags = OPEN_EXISTING;
+        createFlags = writeAccess ? "rb+" : "rb";
         break;
     case OpenAlways:
-        createFlags = OPEN_ALWAYS;
+        createFlags = "ab+";
         break;
     case CreateAlways:
-        createFlags = CREATE_ALWAYS;
+        createFlags = "wb+";
         break;
     default:
-        rAssertMsg( false, "radFileSystem: win32drive: attempting to open file with unknown flag" );
+        rAssertMsg( false, "radFileSystem: sdldrive: attempting to open file with unknown flag" );
+        return Error;
     }
 
-    //
-    // Right now using buffered reads, change it later for performance.
-    //
-    *pHandle = ::CreateFile( fullName, accessFlag, sharingFlag, NULL, 
-                             createFlags, FILE_ATTRIBUTE_NORMAL, NULL );
+#if SDL_MAJOR_VERSION < 3
+    * pHandle = SDL_RWFromFile(fullName, createFlags);
+#else
+    *pHandle = SDL_IOFromFile( fullName, createFlags );
+#endif
 
-    if ( *pHandle != INVALID_HANDLE_VALUE )
+    if ( *pHandle )
     {
-        //
-        // Success! Set file size.
-        //
-        if ( m_OpenFiles == 0 )
-        {
-            //
-            // This is the first file to be opened, so set up the serial number.
-            //
-            m_SerialNumber = SetMediaInfo( );
-        }
-
         m_OpenFiles++;
-        *pSize = ::GetFileSize( *pHandle, NULL );
+#if SDL_MAJOR_VERSION < 3
+        *pSize = SDL_RWsize( (SDL_RWops*)*pHandle );
+#else
+        *pSize = SDL_GetIOSize( (SDL_IOStream*)*pHandle );
+#endif
         m_LastError = Success;
         return Complete;
     }
     else
     {
-        m_LastError = TranslateError( ::GetLastError( ) );
+        m_LastError = FileNotFound;
         return Error;
     }
 }
 
 //=============================================================================
-// Function:    radWin32Drive::CloseFile
+// Function:    radSdlDrive::CloseFile
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::CloseFile( radFileHandle handle, const char* fileName )
+radDrive::CompletionStatus radSdlDrive::CloseFile( radFileHandle handle, const char* fileName )
 {
-    ::CloseHandle( handle );
+#if SDL_MAJOR_VERSION < 3
+    SDL_RWclose( (SDL_RWops*)handle );
+#else
+    SDL_CloseIO( (SDL_IOStream*)handle );
+#endif
     m_OpenFiles--;
     return Complete;
 }
 
 //=============================================================================
-// Function:    radWin32Drive::ReadFile
+// Function:    radSdlDrive::ReadFile
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::ReadFile
+radDrive::CompletionStatus radSdlDrive::ReadFile
 ( 
     radFileHandle   handle, 
     const char*     fileName,
@@ -299,15 +300,22 @@ radDrive::CompletionStatus radWin32Drive::ReadFile
 )
 {
     rAssertMsg( pDataSpace == radMemorySpace_Local, 
-                "radFileSystem: radWin32Drive: External memory not supported for reads." );
+                "radFileSystem: radSdlDrive: External memory not supported for reads." );
 
     //
     // set file pointer
     //
-    if ( ::SetFilePointer( handle, (LONG) position, NULL, FILE_BEGIN ) == (DWORD) position )
+#if SDL_MAJOR_VERSION < 3
+    if ( SDL_RWseek( (SDL_RWops*)handle, position, RW_SEEK_SET ) >= 0 )
     {
-        if ( ::ReadFile( handle, pData, bytesToRead, (unsigned long*) bytesRead, NULL ) )
+        if (SDL_RWread( (SDL_RWops*)handle, pData, 1, bytesToRead ) > 0 )
         {
+#else
+    if ( SDL_SeekIO( (SDL_IOStream*)handle, position, SDL_IO_SEEK_SET ) >= 0 )
+    {
+        if ( SDL_ReadIO( (SDL_IOStream*)handle, pData, bytesToRead ) > 0 )
+        {
+#endif
             //
             // Successful read!
             //
@@ -324,15 +332,15 @@ radDrive::CompletionStatus radWin32Drive::ReadFile
     //
     // Failed!
     //
-    m_LastError = TranslateError( ::GetLastError( ) );
+    m_LastError = FileNotFound;
     return Error;
 }
 
 //=============================================================================
-// Function:    radWin32Drive::WriteFile
+// Function:    radSdlDrive::WriteFile
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::WriteFile
+radDrive::CompletionStatus radSdlDrive::WriteFile
 ( 
     radFileHandle     handle,
     const char*       fileName,
@@ -352,28 +360,30 @@ radDrive::CompletionStatus radWin32Drive::WriteFile
     }
 
     rAssertMsg( pDataSpace == radMemorySpace_Local, 
-                "radFileSystem: radWin32Drive: External memory not supported for reads." );
-    
-    //
-    // presize the write
-    //
-    if ( position + bytesToWrite > *pSize )
-    {
-        ::SetFilePointer( handle, (LONG) position + bytesToWrite, NULL, FILE_BEGIN );
-        ::SetEndOfFile( handle );
-    }
+                "radFileSystem: radSdlDrive: External memory not supported for reads." );
 
     //
     // do the write
     //
-    if ( ::SetFilePointer( handle, (LONG) position, NULL, FILE_BEGIN ) == (DWORD) position )
+#if SDL_MAJOR_VERSION < 3
+    if ( SDL_RWseek( (SDL_RWops*)handle, position, RW_SEEK_SET ) >= 0 )
     {
-        if ( ::WriteFile( handle, pData, bytesToWrite, (unsigned long*) bytesWritten, NULL ) )
+        *bytesWritten = SDL_RWwrite( (SDL_RWops*)handle, pData, 1, bytesToWrite );
+#else
+    if ( SDL_SeekIO( (SDL_IOStream*)handle, position, SDL_IO_SEEK_SET ) >= 0 )
+    {
+        *bytesWritten = SDL_WriteIO( (SDL_IOStream*)handle, pData, bytesToWrite );
+#endif
+        if ( *bytesWritten == bytesToWrite )
         {
             //
             // Sucessful write
             //
-            *pSize = ::GetFileSize( handle, NULL );
+#if SDL_MAJOR_VERSION < 3
+            *pSize = SDL_RWsize( (SDL_RWops*)handle );
+#else
+            *pSize = SDL_GetIOSize( (SDL_IOStream*)handle );
+#endif
             m_LastError = Success;
             return Complete;
         }
@@ -382,15 +392,15 @@ radDrive::CompletionStatus radWin32Drive::WriteFile
     //
     // Failed!
     //
-    m_LastError = TranslateError( ::GetLastError( ) );
+    m_LastError = FileNotFound;
     return Error;
 }
 
 //=============================================================================
-// Function:    radWin32Drive::FindFirst
+// Function:    radSdlDrive::FindFirst
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::FindFirst
+radDrive::CompletionStatus radSdlDrive::FindFirst
 ( 
     const char*                 searchSpec, 
     IRadDrive::DirectoryInfo*   pDirectoryInfo, 
@@ -398,31 +408,42 @@ radDrive::CompletionStatus radWin32Drive::FindFirst
     bool                        firstSearch
 )
 {
-    //
-    // Build the full filename
-    //
-    char fullSpec[ radFileFilenameMax + 1 ];
-    BuildFileSpec( searchSpec, fullSpec, radFileFilenameMax + 1 );
-
-    //
-    // Close this search if it already exists
-    //
-    if ( !firstSearch && *pHandle != INVALID_HANDLE_VALUE )
-    {
-        ::FindClose( *pHandle );
-    }
-
+#if SDL_MAJOR_VERSION < 3
+    return Error;
+#else
     //
     // Find first
     //
-    WIN32_FIND_DATA FindData;
-    *pHandle = ::FindFirstFile( fullSpec, &FindData );
+    const char* pattern = strrchr(searchSpec, '\\');
+    std::string path;
+    if (!pattern)
+        pattern = strrchr(searchSpec, '/');
+    if (pattern)
+        path = std::string(searchSpec, pattern - searchSpec);
+    else
+        pattern = searchSpec;
+    path = m_DrivePath + path;
+    std::replace(path.begin(), path.end(), '\\', '/');
+
+    char** handle = SDL_GlobDirectory( path.c_str(), pattern, SDL_GLOB_CASEINSENSITIVE, NULL );
+    if ( handle )
+    {
+        SDL_PathInfo info;
+        if ( SDL_GetPathInfo( handle[0], &info))
+            m_LastError = TranslateDirInfo( pDirectoryInfo, &info, pHandle );
+        else
+            m_LastError = TranslateDirInfo( pDirectoryInfo, NULL, pHandle );
+        // HACK: We don't need the first element anymore, so use it to store the iterator
+        ((char***)handle)[0] = handle;
+    }
+    else
+    {
+        m_LastError = FileNotFound;
+    }
 
     //
     // Fill in our directory info structure
     //
-    m_LastError = TranslateDirInfo( pDirectoryInfo, &FindData, pHandle );
-
     if ( m_LastError == Success )
     {
         return Complete;
@@ -431,18 +452,22 @@ radDrive::CompletionStatus radWin32Drive::FindFirst
     {
         return Error;
     }
+#endif
 }
 
 //=============================================================================
-// Function:    radWin32Drive::FindNext
+// Function:    radSdlDrive::FindNext
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::FindNext( radFileDirHandle* pHandle, IRadDrive::DirectoryInfo* pDirectoryInfo )
+radDrive::CompletionStatus radSdlDrive::FindNext( radFileDirHandle* pHandle, IRadDrive::DirectoryInfo* pDirectoryInfo )
 {
+#if SDL_MAJOR_VERSION < 3
+    return Error;
+#else
     //
     // If we don't have a handle, return file not found.
     //
-    if ( *pHandle == INVALID_HANDLE_VALUE )
+    if ( *pHandle == NULL )
     {
         m_LastError = FileNotFound;
         return Error;
@@ -451,101 +476,116 @@ radDrive::CompletionStatus radWin32Drive::FindNext( radFileDirHandle* pHandle, I
     //
     // Find the next entry
     //
-    WIN32_FIND_DATA FindData;
-    if ( !::FindNextFile( *pHandle, &FindData ) )
-    {
-        radFileDirHandle h = INVALID_HANDLE_VALUE;
-        m_LastError = TranslateDirInfo( pDirectoryInfo, &FindData, &h );
-    }
+    char*** handle = (char***)*pHandle;
+    *handle++;
+    SDL_PathInfo info;
+    if ( SDL_GetPathInfo(  **handle, &info ))
+        m_LastError = TranslateDirInfo( pDirectoryInfo, &info, pHandle );
     else
-    {
-        m_LastError = TranslateDirInfo( pDirectoryInfo, &FindData, pHandle );
-    }
-
+        m_LastError = TranslateDirInfo( pDirectoryInfo, NULL, pHandle );
+    
     if ( m_LastError == Success )
     {
+        m_LastError = Success;
         return Complete;
     }
     else
     {
+        m_LastError = FileNotFound;
         return Error;
     }
+#endif
 }
 
 //=============================================================================
-// Function:    radWin32Drive::FindClose
+// Function:    radSdlDrive::FindClose
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::FindClose( radFileDirHandle* pHandle )
+radDrive::CompletionStatus radSdlDrive::FindClose( radFileDirHandle* pHandle )
 {
-    ::FindClose( *pHandle );
-    *pHandle = INVALID_HANDLE_VALUE;
+    SDL_free( *pHandle );
+    *pHandle = NULL;
 
     return Complete;
 }
 
 //=============================================================================
-// Function:    radWin32Drive::CreateDir
+// Function:    radSdlDrive::CreateDir
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::CreateDir( const char* pName )
+radDrive::CompletionStatus radSdlDrive::CreateDir( const char* pName )
 {
     rWarningMsg( m_Capabilities & radDriveDirectory, 
         "This drive does not support the CreateDir function." );
 
+#if SDL_MAJOR_VERSION < 3
+    return Error;
+#else
     //
     // Build the full filename
     //
     char fullSpec[ radFileFilenameMax + 1 ];
     BuildFileSpec( pName, fullSpec, radFileFilenameMax + 1 );
 
-    if ( ::CreateDirectory( fullSpec, NULL ) )
+    if ( SDL_CreateDirectory( fullSpec ) )
     {
         m_LastError = Success;
         return Complete;
     }
     else
     {
-        m_LastError = TranslateError( ::GetLastError( ) );
+        m_LastError = FileNotFound;
         return Error;
     }
+#endif
 }
 
 //=============================================================================
-// Function:    radWin32Drive::DestroyDir
+// Function:    radSdlDrive::DestroyDir
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::DestroyDir( const char* pName )
+radDrive::CompletionStatus radSdlDrive::DestroyDir( const char* pName )
 {
     rWarningMsg( m_Capabilities & radDriveDirectory,
         "This drive does not support the DestroyDir function." );
 
+#if SDL_MAJOR_VERSION < 3
+    return Error;
+#else
+    //
+    // Someday check if pName is a dir!
+    //
+
     //
     // Build the full filename
     //
     char fullSpec[ radFileFilenameMax + 1 ];
     BuildFileSpec( pName, fullSpec, radFileFilenameMax + 1 );
 
-    if ( ::RemoveDirectory( fullSpec ) )
+    if ( SDL_RemovePath( fullSpec ) )
     {
         m_LastError = Success;
         return Complete;
     }
     else
     {
-        m_LastError = TranslateError( ::GetLastError( ) );
+        m_LastError = FileNotFound;
         return Error;
     }
+#endif
 }
 
 //=============================================================================
-// Function:    radWin32Drive::DestroyFile
+// Function:    radSdlDrive::DestroyFile
 //=============================================================================
 
-radDrive::CompletionStatus radWin32Drive::DestroyFile( const char* filename )
+radDrive::CompletionStatus radSdlDrive::DestroyFile( const char* filename )
 {
     rWarningMsg( m_Capabilities & radDriveWriteable, "This drive does not support the DestroyFile function." );
 
+#if SDL_MAJOR_VERSION < 3
+    return Error;
+#else
     //
     // Someday check if the file is open!
     //
@@ -556,16 +596,17 @@ radDrive::CompletionStatus radWin32Drive::DestroyFile( const char* filename )
     char fullSpec[ radFileFilenameMax + 1 ];
     BuildFileSpec( filename, fullSpec, radFileFilenameMax + 1 );
 
-    if ( ::DeleteFile( fullSpec ) )
+    if ( SDL_RemovePath( fullSpec ) )
     {
         m_LastError = Success;
         return Complete;
     }
     else
     {
-        m_LastError = TranslateError( ::GetLastError( ) );
+        m_LastError = FileNotFound;
         return Error;
     }
+#endif
 }
 
 //=============================================================================
@@ -573,147 +614,68 @@ radDrive::CompletionStatus radWin32Drive::DestroyFile( const char* filename )
 //=============================================================================
 
 //=============================================================================
-// Function:    radWin32Drive::SetMediaInfo
+// Function:    radSdlDrive::SetMediaInfo
 //=============================================================================
 
-DWORD radWin32Drive::SetMediaInfo( void )
+void radSdlDrive::SetMediaInfo( void )
 {
     //
     // Get volume information.
     //
     const char* realDriveName = m_DriveName;
 
-    char Drive[ 4 ];
-    rAssert( strlen( realDriveName ) == 2 );
-    strcpy( Drive, realDriveName );
-    strcat( Drive, "\\");
-    
-    DWORD snum;
-    if( ::GetVolumeInformation( Drive, m_MediaInfo.m_VolumeName, sizeof( m_MediaInfo.m_VolumeName ),
-        &snum, NULL, NULL, NULL, 0 ) )
+    //rAssert( strlen( realDriveName ) == 2 );
+    strcpy(m_MediaInfo.m_VolumeName, realDriveName );
+    //strcat(m_MediaInfo.m_VolumeName, "\\");
+
+    m_MediaInfo.m_SectorSize = SDL_DEFAULT_SECTOR_SIZE;
+
+    /*
+    if(!error)
     {
+        m_MediaInfo.m_MediaState = IRadDrive::MediaInfo::MediaPresent;
+        m_MediaInfo.m_FreeSpace = space.free;
+
         //
-        // Got media info, so fill in the structure
+        // No file limit, so set it to the available space
         //
-        m_MediaInfo.m_VolumeName[ sizeof( m_MediaInfo.m_VolumeName) - 1 ] = '\0';
-        m_MediaInfo.m_MediaState = IRadDrive::MediaInfo::MediaPresent; 
-        
-        ULARGE_INTEGER FreeBytesAvailableToCaller; 
-        ULARGE_INTEGER TotalNumberOfBytes; 
-        ULARGE_INTEGER TotalNumberOfFreeBytes; 
-        
-        ::GetDiskFreeSpaceEx( Drive, &FreeBytesAvailableToCaller,          
-            &TotalNumberOfBytes, &TotalNumberOfFreeBytes );
-        
-        if( FreeBytesAvailableToCaller.HighPart != 0 )
-        {
-            m_MediaInfo.m_FreeSpace = UINT_MAX;
-        }
-        else
-        {
-            m_MediaInfo.m_FreeSpace = FreeBytesAvailableToCaller.LowPart;
-        }        
+        m_MediaInfo.m_FreeFiles = space.available / m_MediaInfo.m_SectorSize;
+        m_LastError = Success;
     }
     else
+    */
     {
         //
-        // Don't have media info, so fill structure in with 0s
+        // Don't have media info, so fill structure in with dummy info
         //
-        snum = 0;
-        m_MediaInfo.m_MediaState = IRadDrive::MediaInfo::MediaNotPresent;
-        m_MediaInfo.m_FreeSpace = 0;
-        m_MediaInfo.m_VolumeName[ 0 ] = '\0';
+        m_MediaInfo.m_MediaState = IRadDrive::MediaInfo::MediaPresent;
+        m_MediaInfo.m_FreeSpace = UINT_MAX;
+        m_MediaInfo.m_FreeFiles = m_MediaInfo.m_FreeSpace / m_MediaInfo.m_SectorSize;
+        m_LastError = Success;
     }
-
-    m_MediaInfo.m_SectorSize = WIN32_DEFAULT_SECTOR_SIZE;
-
-    //
-    // No file limit, so set it to the same as free space
-    //
-    m_MediaInfo.m_FreeFiles = m_MediaInfo.m_FreeSpace / m_MediaInfo.m_SectorSize;
-
-    return snum;
 }
 
-
 //=============================================================================
-// Function:    radWin32Drive::BuildFileSpec
+// Function:    radSdlDrive::BuildFileSpec
 //=============================================================================
 
-void radWin32Drive::BuildFileSpec( const char* fileName, char* fullName, unsigned int size )
+void radSdlDrive::BuildFileSpec( const char* fileName, char* fullName, unsigned int size )
 {
-    char fileWithDrive[ radFileFilenameMax + 1 ];
-    char* pFile = NULL;
+    std::string path(m_DrivePath);
+    path += fileName;
+    std::replace(path.begin(), path.end(), '\\', '/');
 
-    int len = strlen( m_DriveName );
-    strcpy( fileWithDrive, m_DriveName );
-    strncpy( fileWithDrive + len, fileName, radFileFilenameMax - len );
-    fileWithDrive[ radFileFilenameMax ] ='\0';
-    
-    ::GetFullPathName( fileWithDrive, size - 1, fullName, &pFile );
+    strncpy( fullName, path.c_str(), size - 1 );
     fullName[ size - 1 ] = '\0';
 }
 
+#if SDL_MAJOR_VERSION > 2
 //=============================================================================
-// Function:    radWin32Drive::TranslateError
-//=============================================================================
-// Description: This translates the windows error code into our error enums.
-//
-// Parameters:  Win32 error code
-//              
-// Returns:     Our error code
-//------------------------------------------------------------------------------
-
-radFileError radWin32Drive::TranslateError( DWORD windowsError )
-{
-    //
-    // we shouldn't have success here. If we do we made a mistake earlier.
-    //
-    switch( windowsError )
-    {
-    case ERROR_SUCCESS:
-        rAssertMsg( false, "radFileSystem: internal error\n" );
-        return( Success );
-
-    case ERROR_FILE_NOT_FOUND :
-    case ERROR_PATH_NOT_FOUND :
-    case ERROR_INVALID_DRIVE :
-        return( FileNotFound );
-
-    case ERROR_WRONG_DISK :
-    case ERROR_NOT_SAME_DEVICE :
-        return( WrongMedia );
-
-    case ERROR_NOT_READY :
-        return( ShellOpen );
-
-    case ERROR_BAD_FORMAT :
-    case ERROR_SECTOR_NOT_FOUND :
-        return( MediaNotFormatted );
-
-    case ERROR_DISK_FULL:
-        return ( NoFreeSpace );
-
-    case ERROR_UNRECOGNIZED_VOLUME:
-        return ( MediaCorrupt );
-
-    case ERROR_NOT_DOS_DISK:
-        return ( MediaInvalid );
-
-    case ERROR_DEVICE_NOT_CONNECTED:
-        return( NoMedia );
-
-    default:
-        return( HardwareFailure );
-    }
-}
-
-//=============================================================================
-// Function:    radWin32Drive::TranslateDirInfo
+// Function:    radSdlDrive::TranslateDirInfo
 //=============================================================================
 // Description: Translate the directory info and return an error status. A handle
-//              with value INVALID_HANDLE_VALUE means the find_first/next call
-//              failed and needs to be checked if something went wrong or of the
+//              with value directory_iterator() means the find_first/next call
+//              failed and needs to be checked if something went wrong or if the
 //              search just ended.
 //
 // Parameters:  
@@ -721,35 +683,35 @@ radFileError radWin32Drive::TranslateError( DWORD windowsError )
 // Returns:     
 //------------------------------------------------------------------------------
 
-radFileError radWin32Drive::TranslateDirInfo
+radFileError radSdlDrive::TranslateDirInfo
 ( 
     IRadDrive::DirectoryInfo*   pDirectoryInfo, 
-    const WIN32_FIND_DATA*      pFindData,
+    const SDL_PathInfo*         pPathInfo,
     const radFileDirHandle*     pHandle
 )
 {
-    if ( *pHandle == INVALID_HANDLE_VALUE )
+    char*** handle = (char***)*pHandle;
+    if ( !pPathInfo || !*handle )
     {
         //
         // Either we failed or we're out of games.
         //
-        DWORD error = ::GetLastError( );
-        if ( error == ERROR_NO_MORE_FILES || error == ERROR_FILE_NOT_FOUND )
+        if ( !pPathInfo )
+        {
+            return FileNotFound;
+        }
+        else
         {
             pDirectoryInfo->m_Name[0] = '\0';
             pDirectoryInfo->m_Type = IRadDrive::DirectoryInfo::IsDone;
         }
-        else
-        {
-            return TranslateError( error );
-        }
     }
     else
     {
-        strncpy( pDirectoryInfo->m_Name, pFindData->cFileName, radFileFilenameMax );
+        strncpy( pDirectoryInfo->m_Name, **handle, radFileFilenameMax );
         pDirectoryInfo->m_Name[ radFileFilenameMax ] = '\0';
 
-        if ( pFindData->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+        if ( pPathInfo->type == SDL_PATHTYPE_DIRECTORY )
         {
             pDirectoryInfo->m_Type = IRadDrive::DirectoryInfo::IsDirectory;
         }
@@ -760,3 +722,4 @@ radFileError radWin32Drive::TranslateDirInfo
     }
     return Success;
 }
+#endif

@@ -9,7 +9,7 @@ set(SRR2_REGION "NTSC" CACHE STRING "Select PAL for the EFIGS multi-language ver
 set_property(CACHE SRR2_REGION PROPERTY STRINGS "NTSC" "PAL")
 
 option(SRR2_USE_DLMALLOC "Use Doug Lea's memory allocator for fixed-size heaps" OFF)
-option(SRR2_REROUTE_ALL_HEAP_ALLOCATIONS "Override new operator to track all heap allocations" OFF)
+option(SRR2_REROUTE_ALL_HEAP_ALLOCATIONS "Reroute all memory allocations by new operator to internal heaps" OFF)
 option(SRR2_USE_BINK "Use RAD Game Tools Bink SDK instead of FFmpeg" OFF)
 option(SRR2_BUILD_TESTS "Build sample programs for internal libraries" ON)
 option(SRR2_MICROPROFILE "Use microprofile instead of the internal profiler" OFF)
@@ -92,6 +92,7 @@ endif()
 add_definitions(
 	-DRAD_CONSOLE
 	-DRAD_WIN32
+	-DRAD_SDL
 )
 
 if(SRR2_REGION STREQUAL "PAL")
