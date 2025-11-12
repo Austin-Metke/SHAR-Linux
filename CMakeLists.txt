@@ -55,17 +55,7 @@ endif()
 find_package(PNG REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-set(SRR2_OPENAL_IMPL "OpenAL-Soft" CACHE STRING "OpenAL implementation")
-set_property(CACHE SRR2_OPENAL_IMPL PROPERTY STRINGS "OpenAL-Soft" "MojoAL")
-
-if (SRR2_OPENAL_IMPL STREQUAL "OpenAL-Soft")
-	find_package(OpenAL REQUIRED)
-	set(SRR2_OPENAL_TARGET OpenAL::OpenAL)
-else()
-	add_subdirectory(libs/sdks/mojoal SYSTEM)
-	set(SRR2_OPENAL_TARGET mojoal)
-endif()
+find_package(OpenAL REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	add_compile_options(-fvisibility=hidden)

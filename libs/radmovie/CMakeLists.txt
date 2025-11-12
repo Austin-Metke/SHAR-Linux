@@ -60,7 +60,7 @@ if(SRR2_USE_BINK)
 			__RADFINAL__
 			__RADINSTATICLIB__
 	)
-	target_link_libraries(bink ${SRR2_OPENAL_TARGET})
+	target_link_libraries(bink OpenAL::OpenAL)
 	if (WIN32)
 		target_link_libraries(bink Winmm)
 	endif()

@@ -50,6 +50,6 @@ target_include_directories(radsound
 	PRIVATE "src/common/"
 )
 target_link_libraries(radsound
-	${SRR2_OPENAL_TARGET}
+	OpenAL::OpenAL
 	radcore
 )
