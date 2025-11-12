@@ -171,6 +171,9 @@ void gxmMat::SetTexture(pddiTexture* t)
     if(t == texEnv[pass].texture)
         return;
 
+    if((texEnv[pass].texture != nullptr) != (t != nullptr))
+        valid = false;
+
     if(texEnv[pass].texture)
         texEnv[pass].texture->Release();
 
@@ -178,63 +181,52 @@ void gxmMat::SetTexture(pddiTexture* t)
 
     if(texEnv[pass].texture)
         texEnv[pass].texture->AddRef();
-
-    valid = false;
 }
 
 void gxmMat::SetUVMode(int mode) 
 {
     texEnv[pass].uvMode = (pddiUVMode)mode;
-    valid = false;
 }
 
 void gxmMat::SetFilterMode(int mode) 
 {
     texEnv[pass].filterMode = (pddiFilterMode)mode;
-    valid = false;
 }
 
 void gxmMat::SetShadeMode(int shade) 
 {
     texEnv[pass].shadeMode = (pddiShadeMode)shade;
-    valid = false;
 }
 
 void gxmMat::SetTwoSided(int b)
 {
     texEnv[pass].twoSided = b != 0;
-    valid = false;
 }
 
 void gxmMat::EnableLighting(int b)
 {
     texEnv[pass].lit = b != 0;
-    valid = false;
 }
 
 void gxmMat::SetAmbient(pddiColour a) 
 {
     texEnv[pass].ambient = a;
-    valid = false;
 }
 
 void gxmMat::SetDiffuse(pddiColour colour) 
 {
     texEnv[pass].diffuse = colour;
-    valid = false;
 }
 
 void gxmMat::SetSpecular(pddiColour c) 
 {
     texEnv[pass].specular = c;
-    valid = false;
 }
 
 void gxmMat::SetEmissive(pddiColour c) 
 {
     texEnv[pass].emissive = c;
     SetEmissiveAlpha(c.Alpha());
-    valid = false;
 }
 
 void gxmMat::SetEmissiveAlpha(int alpha)
@@ -252,43 +244,39 @@ void gxmMat::SetEmissiveAlpha(int alpha)
         texEnv[pass].ambient.SetAlpha(255);
         texEnv[pass].emissive.SetAlpha(255);
     }
-    valid = false;
 }
 
 void gxmMat::SetShininess(float power) 
 {
     texEnv[pass].shininess = power;
-    valid = false;
 }
 
 void gxmMat::SetBlendMode(int mode) 
 {
+    valid = valid && texEnv[pass].alphaBlendMode == (pddiBlendMode)mode;
     texEnv[pass].alphaBlendMode = (pddiBlendMode)mode;
-    valid = false;
 }
 
 void gxmMat::EnableAlphaTest(int b) 
 {
+    valid = valid && texEnv[pass].alphaTest == b != 0;
     texEnv[pass].alphaTest = b != 0;
-    valid = false;
 }
 
 void gxmMat::SetAlphaCompare(int compare) 
 {
     texEnv[pass].alphaCompareMode = pddiCompareMode(compare);
-    valid = false;
 }
 
 void gxmMat::SetAlphaRef(float ref) 
 {
     texEnv[pass].alphaRef = ref;
-    valid = false;
 }
 
 void gxmMat::SetColourWrite(int mask)
 {
+    valid = valid && texEnv[pass].writeMask == mask;
     texEnv[pass].writeMask = mask;
-    valid = false;
 }
 
 int gxmMat::CountDevPasses(void) 
