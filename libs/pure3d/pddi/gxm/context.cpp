@@ -29,6 +29,15 @@ SceGxmPrimitiveType primTypeTable[5] =
     SCE_GXM_PRIMITIVE_POINTS,         // PDDI_PRIM_POINTS
 };
 
+SceGxmPolygonMode polyModeTable[5] =
+{
+    SCE_GXM_POLYGON_MODE_TRIANGLE_FILL, // PDDI_PRIM_TRIANGLES
+    SCE_GXM_POLYGON_MODE_TRIANGLE_FILL, // PDDI_PRIM_TRISTRIP
+    SCE_GXM_POLYGON_MODE_LINE,          // PDDI_PRIM_LINES
+    SCE_GXM_POLYGON_MODE_LINE,          // PDDI_PRIM_LINESTRIP
+    SCE_GXM_POLYGON_MODE_POINT,         // PDDI_PRIM_POINTS
+};
+
 class gxmExtGamma : public pddiExtGammaControl
 {
 public:
@@ -693,6 +702,7 @@ void gxmPrimBuffer::Display(void)
         valid = true;
     }
 
+    sceGxmSetFrontPolygonMode(context->context, polyModeTable[primType]);
     CHK_GXM(sceGxmDrawPrecomputed(context->context, &precomputed));
 }
 
