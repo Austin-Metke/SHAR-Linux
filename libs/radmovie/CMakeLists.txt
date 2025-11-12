@@ -60,7 +60,7 @@ if(SRR2_USE_BINK)
 			__RADFINAL__
 			__RADINSTATICLIB__
 	)
-	target_link_libraries(bink OpenAL::OpenAL)
+	target_link_libraries(bink ${OPENAL_LIBRARY})
 	if (WIN32)
 		target_link_libraries(bink Winmm)
 	endif()
@@ -91,6 +91,7 @@ add_library(radmovie STATIC ${RADMOVIE_SOURCES})
 target_include_directories(radmovie
 	PUBLIC "inc/"
 	PRIVATE "src/pch/"
+	PRIVATE ${OPENAL_INCLUDE_DIR}
 )
 target_link_libraries(radmovie
 	p3d
@@ -108,6 +109,7 @@ if(SRR2_BUILD_TESTS)
 	target_link_libraries(simplemovie
 		radmovie
 		${SDL_LIBRARY}
+		${OPENAL_LIBRARY}
 		p3d
 		pddi
 		radcore

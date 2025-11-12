@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.2...3.10)
+cmake_minimum_required(VERSION 3.6.3...3.10)
 
 project(SRR2)
 

@@ -48,8 +48,9 @@ target_include_directories(radsound
 	PUBLIC "inc/"
 	PRIVATE "src/pch/"
 	PRIVATE "src/common/"
+	PRIVATE ${OPENAL_INCLUDE_DIR}
 )
 target_link_libraries(radsound
-	OpenAL::OpenAL
+	${OPENAL_LIBRARY}
 	radcore
 )
