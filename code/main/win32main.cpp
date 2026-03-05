@@ -21,12 +21,9 @@
 #include <stdio.h>
 #include <SDL_main.h>
 
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
+#include <main/platform_config.h>
 
 #ifdef RAD_VITA
-#include <unistd.h>
 #include <psp2/kernel/clib.h>
 unsigned int sceLibcHeapSize = 16 * 1024 * 1024;
 #endif
@@ -72,16 +69,7 @@ static void LogOutputFunction( void *userdata, int category, SDL_LogPriority pri
 //=============================================================================
 extern "C" int main( int argc, char *argv[] )
 {
-#ifdef __SWITCH__
-#ifdef RAD_DEBUG
-    socketInitializeDefault();
-    nxlinkStdio();
-#endif
-    romfsInit();
-#endif
-#ifdef RAD_VITA
-	chdir( "ux0:data/simpsons" );
-#endif
+    PlatformPreInit();
 
     //
     // Pick out and store command line settings.

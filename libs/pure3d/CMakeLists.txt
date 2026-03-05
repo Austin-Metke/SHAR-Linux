@@ -103,8 +103,10 @@ set(P3D_SOURCES
 	"p3d/vertexlist.cpp"
 	"p3d/view.cpp"
 )
-if (WIN32)
+if(WIN32)
 	list(APPEND P3D_SOURCES "p3d/platform/win32/plat_filemap.cpp")
+elseif(UNIX)
+	list(APPEND P3D_SOURCES "p3d/platform/linux/plat_filemap.cpp")
 endif()
 
 set(PDDI_SOURCES
@@ -182,6 +184,9 @@ target_link_libraries(pddi
 	radmath
 	radcore
 )
+if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+	target_link_libraries(pddi OpenGL::GL)
+endif()
 
 add_library(p3d STATIC ${P3D_SOURCES})
 target_include_directories(p3d

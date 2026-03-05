@@ -98,23 +98,16 @@ public:
 };
 
 // system-dependent includes
-#ifdef RAD_WIN32
+// Note: RAD_WIN32 is defined as a generic "desktop" define for the port,
+// so on Linux both RAD_WIN32 and RAD_LINUX are defined. pddiwin32.hpp
+// uses stdint types and works correctly on both platforms.
+#if defined(RAD_WIN32)
     #include <pddi/pddiwin32.hpp>
-#endif
-
-#ifdef RAD_XBOX
+#elif defined(RAD_XBOX)
     #include <pddi/pddixbox.hpp>
-#endif
-
-#ifdef RAD_PS2
+#elif defined(RAD_PS2)
     #include <pddi/pddips2.hpp>
-#endif
-
-#ifdef RAD_LINUX
-    #include <pddi/pddilinux.hpp>
-#endif
-
-#ifdef RAD_GAMECUBE
+#elif defined(RAD_GAMECUBE)
     #include <pddi/pddigc.hpp>
 #endif
 

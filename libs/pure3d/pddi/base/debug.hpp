@@ -10,22 +10,14 @@
 #include <pddi/buildconfig.hpp>
 
 // PDDI Debugging support
-#if defined (WIN32) || defined (RAD_XBOX)
+#if defined(WIN32) || defined(RAD_XBOX)
     #define pddiBreak() { __debugbreak(); }
+#elif defined(RAD_PS2)
+    #define pddiBreak() { asm( ".word 0x0000004d"); }
+#elif defined(RAD_GAMECUBE)
+    #define pddiBreak() { asm(trap); }
 #else
     #define pddiBreak() { __builtin_trap(); }
-#endif
-
-#ifdef RAD_PS2
-    #define pddiBreak() { asm( ".word 0x0000004d"); }
-#endif
-
-#ifdef RAD_GAMECUBE
-    #define pddiBreak(){ asm(trap); }
-#endif
-
-#ifdef RAD_LINUX
-    #define pddiBreak() { exit(0); }
 #endif
 
 

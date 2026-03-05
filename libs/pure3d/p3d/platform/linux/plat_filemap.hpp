@@ -2,9 +2,8 @@
 // Copyright (c) 2002 Radical Games Ltd.  All rights reserved.
 //=============================================================================
 
-
-#ifndef _PLAT_FILEMAP_HPP
-#define _PLAT_FILEMAP_HPP
+#ifndef _LINUX_PLAT_FILEMAP_HPP
+#define _LINUX_PLAT_FILEMAP_HPP
 
 #include <p3d/file.hpp>
 
@@ -13,7 +12,7 @@ class tLinuxFileMap : public tFileMem
 public:
     tLinuxFileMap(const char* filename);
 
-    bool IsOpen(void) { return GetMemory() != NULL;}
+    bool IsOpen(void) { return GetMemory() != NULL; }
 
 protected:
     virtual ~tLinuxFileMap();
@@ -24,5 +23,4 @@ protected:
     int fh;
 };
 
-#endif /*_FILEMAP_HPP*/
-
+#endif /*_LINUX_PLAT_FILEMAP_HPP*/

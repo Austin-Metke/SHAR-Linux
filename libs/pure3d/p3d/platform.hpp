@@ -6,23 +6,16 @@
 #ifndef _BASE_PLATFORM_HPP
 #define _BASE_PLATFORM_HPP
 
-#ifdef RAD_PS2
+// Note: RAD_WIN32 is the generic "desktop" define (used for Linux, Windows, Switch).
+// The win32/platform.hpp uses SDL and works on all desktop platforms.
+// The linux/platform.hpp is an old X11 version that's unused.
+#if defined(RAD_PS2)
     #include <p3d/platform/ps2/platform.hpp>
-#endif
-
-#ifdef RAD_LINUX
-    #include <p3d/platform/linux/platform.hpp>
-#endif
-
-#ifdef RAD_XBOX
+#elif defined(RAD_XBOX)
     #include <p3d/platform/xbox/platform.hpp>
-#endif
-
-#ifdef RAD_GAMECUBE
+#elif defined(RAD_GAMECUBE)
     #include <p3d/platform/GameCube/platform.hpp>
-#endif
-
-#ifdef RAD_WIN32
+#elif defined(RAD_WIN32)
     #include <p3d/platform/win32/platform.hpp>
 #endif
 

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libradcontent.a CMakeFiles/radcontent.dir/src/radload/request.cpp.o CMakeFiles/radcontent.dir/src/radload/queue.cpp.o CMakeFiles/radcontent.dir/src/radload/hashtable.cpp.o CMakeFiles/radcontent.dir/src/radload/inventory.cpp.o CMakeFiles/radcontent.dir/src/radload/stream.cpp.o CMakeFiles/radcontent.dir/src/radload/manager.cpp.o CMakeFiles/radcontent.dir/src/radload/object.cpp.o
+/usr/bin/ranlib libradcontent.a

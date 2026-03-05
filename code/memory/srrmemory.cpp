@@ -12,8 +12,11 @@
 //========================================
 // System Includes
 //========================================      
-#ifdef RAD_PS2      
+#ifdef RAD_PS2
 #include <malloc.h>
+#endif
+#ifdef RAD_LINUX
+#include <cstdlib>
 #endif
 
 // Foundation Tech
@@ -82,6 +85,14 @@ bool g_HeapManagerCreated   = false;
 // Has the memory system been intialized via FTech?
 //
 bool gMemorySystemInitialized = false;
+
+#ifdef RAD_LINUX
+// On Linux, shared library constructors can call operator new before main()
+// starts. We can't initialize the game memory system that early (it needs SDL),
+// so we fall back to malloc for pre-main allocations.
+static bool g_MainStarted = false;
+void radLinuxSetMainStarted() { g_MainStarted = true; }
+#endif
 
 #ifdef REROUTE_ALL_HEAP_ALLOCATIONS
 // 
@@ -185,6 +196,12 @@ throw( std::bad_alloc )
 #endif
 #endif
 {
+#ifdef RAD_LINUX
+    if( !g_MainStarted && !gMemorySystemInitialized )
+    {
+        return malloc( size );
+    }
+#endif
     if( gMemorySystemInitialized == false )
     {
         INIT_MEM();
@@ -253,6 +270,12 @@ throw( std::bad_alloc )
 #endif
 #endif
 {
+#ifdef RAD_LINUX
+    if( !g_MainStarted && !gMemorySystemInitialized )
+    {
+        return malloc( size );
+    }
+#endif
     if( gMemorySystemInitialized == false )
     {
         INIT_MEM();

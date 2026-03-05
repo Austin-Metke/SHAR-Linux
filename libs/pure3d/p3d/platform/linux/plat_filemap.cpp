@@ -2,7 +2,6 @@
 // Copyright (c) 2002 Radical Games Ltd.  All rights reserved.
 //=============================================================================
 
-
 #include <p3d/platform/linux/plat_filemap.hpp>
 #include <unistd.h>
 #include <string.h>
@@ -12,6 +11,7 @@
 #include <fcntl.h>
 
 tLinuxFileMap::tLinuxFileMap(const char* filename)
+    : fh(-1)
 {
     length = 0;
     Open(filename);
@@ -23,7 +23,7 @@ tLinuxFileMap::~tLinuxFileMap()
     Close();
 }
 
-void 
+void
 tLinuxFileMap::Open(const char* filename)
 {
     fh = open(filename, O_RDONLY);
@@ -31,17 +31,21 @@ tLinuxFileMap::Open(const char* filename)
     {
         return;
     }
-    
-    length = lseek(fh, 0, SEEK_END);
-    if(length < 0)
-    {
-        return;
-    }
 
-    unsigned char *memory = (unsigned char*)mmap(NULL, length, PROT_READ, MAP_PRIVATE, fh, 0);
-    if(!memory)
+    struct stat st;
+    if(fstat(fh, &st) != 0)
     {
         close(fh);
+        fh = -1;
+        return;
+    }
+    length = st.st_size;
+
+    unsigned char *memory = (unsigned char*)mmap(NULL, length, PROT_READ, MAP_PRIVATE, fh, 0);
+    if(memory == MAP_FAILED)
+    {
+        close(fh);
+        fh = -1;
         return;
     }
 
@@ -51,7 +55,15 @@ tLinuxFileMap::Open(const char* filename)
 
 void tLinuxFileMap::Close()
 {
-    munmap(GetMemory(),length);
-    close(fh);
+    if(GetMemory())
+    {
+        munmap(GetMemory(), length);
+        dataStream->Release();
+    }
+    if(fh != -1)
+    {
+        close(fh);
+        fh = -1;
+    }
+    length = 0;
 }
-

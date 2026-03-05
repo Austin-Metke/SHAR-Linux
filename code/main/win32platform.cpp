@@ -120,8 +120,10 @@
 #include <cheats/cheatinputsystem.h>
 #include <mission/gameplaymanager.h>
 
+#ifndef RAD_LINUX
 #ifdef __SWITCH__
 #include <switch.h>
+#endif
 #endif
 
 #include <radload/radload.hpp>

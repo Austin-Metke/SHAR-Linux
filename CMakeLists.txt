@@ -57,6 +57,11 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(OpenAL REQUIRED)
 
+# On native Linux, find system OpenGL
+if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+	find_package(OpenGL REQUIRED)
+endif()
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	add_compile_options(-fvisibility=hidden)
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -84,6 +89,11 @@ add_definitions(
 	-DRAD_WIN32
 	-DRAD_SDL
 )
+
+# Linux-specific defines
+if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+	add_definitions(-DRAD_LINUX)
+endif()
 
 if(SRR2_REGION STREQUAL "PAL")
 	add_definitions(-DPAL)

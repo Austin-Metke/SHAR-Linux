@@ -1,0 +1,2 @@
+/usr/bin/ar qc libradmovie.a CMakeFiles/radmovie.dir/src/common/ffmpegmovieplayer.cpp.o CMakeFiles/radmovie.dir/src/common/binkrenderstrategy.cpp.o CMakeFiles/radmovie.dir/src/pch/pch.cpp.o
+/usr/bin/ranlib libradmovie.a

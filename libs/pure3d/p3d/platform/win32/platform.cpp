@@ -6,7 +6,7 @@
 #include <p3d/platform/win32/platform.hpp>
 #ifdef WIN32
 #include <p3d/platform/win32/plat_filemap.hpp>
-#else
+#elif defined(RAD_LINUX)
 #include <p3d/platform/linux/plat_filemap.hpp>
 #endif
 #include <p3d/utility.hpp>
@@ -177,6 +177,17 @@ void tPlatform::SetActiveContext(tContext* context)
 tFile* tPlatform::OpenFile(const char* filename)
 {
     tWin32FileMap* file = new tWin32FileMap(filename);
+    if(!file->IsOpen())
+    {
+        file->Release();
+        return NULL;
+    }
+    return file;
+}
+#elif defined(RAD_LINUX)
+tFile* tPlatform::OpenFile(const char* filename)
+{
+    tLinuxFileMap* file = new tLinuxFileMap(filename);
     if(!file->IsOpen())
     {
         file->Release();
