@@ -564,3 +564,41 @@ events:
       Running the CXX compiler's linker: "/usr/bin/ld" "-v"
       GNU ld (GNU Binutils for Ubuntu) 2.42
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCSourceCompiles.cmake:58 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/usr/local/share/cmake-3.31/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:57 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4"
+      binary: "/home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_2135e/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_2135e.dir/build.make CMakeFiles/cmTC_2135e.dir/build
+        gmake[1]: Entering directory '/home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4'
+        Building C object CMakeFiles/cmTC_2135e.dir/src.c.o
+        /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_2135e.dir/src.c.o -c /home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4/src.c
+        Linking C executable cmTC_2135e
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2135e.dir/link.txt --verbose=1
+        /usr/bin/cc CMakeFiles/cmTC_2135e.dir/src.c.o -o cmTC_2135e
+        gmake[1]: Leaving directory '/home/runner/work/SHAR-Linux/SHAR-Linux/build-linux/CMakeFiles/CMakeScratch/TryCompile-lyCtz4'
+        
+      exitCode: 0
+...
