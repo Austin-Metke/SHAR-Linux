@@ -482,7 +482,7 @@ void Profiler::Render(void)
     {		
         unsigned int indent = 0;
         float aveTime, minTime, maxTime, sampleAve, totalTime;
-        char line[256], name[256], indentedName[256];
+        char line[512], name[320], indentedName[256];
         char ave[32], min[32], max[32], num[32], sample[32], total[32]; 
 
 //        this->GetProfileHistory( mSamples[i].szName, &aveTime, &minTime, &maxTime, &sampleAve, &totalTime);
@@ -498,15 +498,18 @@ void Profiler::Render(void)
         sprintf( total, "%3.2f", totalTime );
 
 
-        strcpy( indentedName, mSamples[i].szName );
-      
-        
-        for( indent=0; indent<mSamples[i].iNumParents; indent++ ) 
+        strncpy( indentedName, mSamples[i].szName, sizeof(indentedName) - 1 );
+        indentedName[sizeof(indentedName) - 1] = '\0';
+
+        unsigned int numParents = mSamples[i].iNumParents;
+        if( numParents > 20 ) numParents = 20;
+        char indentPrefix[ 64 ] = "";
+        for( indent=0; indent<numParents; indent++ )
         {
-            sprintf( name, "   %s", indentedName );
-            strcpy( indentedName, name );
+            strncat( indentPrefix, "   ", sizeof(indentPrefix) - strlen(indentPrefix) - 1 );
         }
-        sprintf(line,"%5s\t| %5s\t|%2s\t| %5s\t| %s ", ave, sample, num, total, indentedName);
+        snprintf( name, sizeof(name), "%s%s", indentPrefix, indentedName );
+        snprintf(line, sizeof(line), "%5s\t| %5s\t|%2s\t| %5s\t| %s ", ave, sample, num, total, name);
 
 //        p3d::pddi->DrawString( line,
 //                               LEFT + sLeftOffset + SHADOW_OFFSET, 

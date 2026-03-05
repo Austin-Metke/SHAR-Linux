@@ -66,8 +66,8 @@ void region_controller_construct(
         layer_name(  ptr_layer, layer_nom, 256 );
         region_name( ptr_region, region_nom, 256 );
         
-        char sequence_player_name[ 256 ];
-        sprintf( sequence_player_name, "struct_region_controller: [%s] layer: [%s]", region_nom, layer_nom );
+        char sequence_player_name[ 768 ];
+        snprintf( sequence_player_name, sizeof( sequence_player_name ), "struct_region_controller: [%s] layer: [%s]", region_nom, layer_nom );
         
         p_rc->p_layer_controllers[ t ].p_sequence_player = sequence_player_new(
             ptr_sequence,

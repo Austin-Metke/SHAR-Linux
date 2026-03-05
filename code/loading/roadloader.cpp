@@ -128,8 +128,8 @@ MEMTRACK_PUSH_GROUP( "Road Loading" );
 
     if ( !f->ChunksRemaining() )
     {
-        char error[256];
-        sprintf( error, "The Road: %s has no segments!\n", name );
+        char error[296];
+        snprintf( error, sizeof(error), "The Road: %s has no segments!\n", name );
         rDebugString( error );
 MEMTRACK_POP_GROUP( "Road Loading" );
         return LOAD_OK;

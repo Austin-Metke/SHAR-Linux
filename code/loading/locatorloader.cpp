@@ -795,8 +795,8 @@ MEMTRACK_POP_GROUP("Locator Loading");
         if( strncmp( name, "load", 4 ) == 0 )
         {
             msZoneNameCount++;
-            char tempName[256];
-            sprintf( tempName, "mfa%d%s",  msZoneNameCount, name);
+            char tempName[280];
+            snprintf( tempName, sizeof(tempName), "mfa%d%s",  msZoneNameCount, name);
             locator->SetName(tempName);
         }
     }

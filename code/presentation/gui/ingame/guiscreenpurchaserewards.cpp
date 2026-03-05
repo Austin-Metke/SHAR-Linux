@@ -933,18 +933,18 @@ CGuiScreenPurchaseRewards::UpdateRewardPrice()
             char coinsText[ 32 ];
             p3d::UnicodeToAscii( GetTextBibleString( "COINS" ), coinsText, sizeof( coinsText ) );
 
-            char buffer[ 32 ];
+            char buffer[ 48 ];
 #ifdef PAL
             if( CGuiTextBible::GetCurrentLanguage() == Scrooby::XL_GERMAN )
             {
                 // special case for German for proper grammar
                 //
-                sprintf( buffer, "Für %d %s", rewardCost, coinsText );
+                snprintf( buffer, sizeof(buffer), "Für %d %s", rewardCost, coinsText );
             }
             else
 #endif // PAL
             {
-                sprintf( buffer, "%d %s", rewardCost, coinsText );
+                snprintf( buffer, sizeof(buffer), "%d %s", rewardCost, coinsText );
             }
 
             rAssert( strlen( buffer ) < sizeof( buffer ) );

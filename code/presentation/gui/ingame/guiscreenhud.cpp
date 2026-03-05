@@ -961,9 +961,9 @@ void CGuiScreenHud::SetTimerBlinkingInterval( int startTime, int endTime )
 //===========================================================================
 void CGuiScreenHud::SetParTime( int parTime ) // in seconds
 {
-    char buffer[ BITMAP_TEXT_BUFFER_SIZE ];
+    char buffer[ 16 ];
 
-    sprintf( buffer, "%d:%02d", parTime / 60, parTime % 60 );
+    snprintf( buffer, sizeof(buffer), "%d:%02d", parTime / 60, parTime % 60 );
 
     rAssert( m_parTime != NULL );
     m_parTime->SetBitmapText( buffer );
@@ -1997,8 +1997,8 @@ CGuiScreenHud::UpdateTimer( unsigned int elapsedTime )
 
         int numSecondsRemaining = numMillisecondsRemaining / 1000;
 
-        char buffer[ BITMAP_TEXT_BUFFER_SIZE ];
-        sprintf( buffer, "%d:%02d", numSecondsRemaining / 60, numSecondsRemaining % 60 );
+        char buffer[ 16 ];
+        snprintf( buffer, sizeof(buffer), "%d:%02d", numSecondsRemaining / 60, numSecondsRemaining % 60 );
 
         m_timer->SetBitmapText( buffer );
     }

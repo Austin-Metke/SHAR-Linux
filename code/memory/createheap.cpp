@@ -213,10 +213,10 @@ void DestroyHeapA( GameMemoryAllocator allocator )
     {
         #ifndef FINAL
             unsigned int size = g_HeapArray[ index ]->GetSize();
-            char s[ 256 ];
+            char s[ 320 ];
             const char* name = g_HeapCreationData[ index ].name;
             unsigned int leakSize = size - totalFree;
-            sprintf( s, "MEMORY LEAK: '%s' %d blocks %d bytes ", name, numAllocs, leakSize );
+            snprintf( s, sizeof(s), "MEMORY LEAK: '%s' %d blocks %d bytes ", name, numAllocs, leakSize );
             rTunePrintf( s );
             g_HeapArray[index]->ValidateHeap();
         #endif

@@ -794,17 +794,17 @@ CGuiScreenPhoneBooth::On3DModelLoaded( const PreviewObject* previewObject )
     {
         // search for 2D image(s) in inventory
         //
-        char name[ 16 ];
+        char name[ 24 ];
 
         if( damageState == eDamaged )
         {
             // show damaged vehicle
             //
 #ifdef LOAD_DAMAGED_VEHICLE_IMAGES
-            sprintf( name, "%sD.png", previewObject->nameModel );
+            snprintf( name, sizeof(name), "%sD.png", previewObject->nameModel );
             m_previewImage->ScaleAboutCenter( VEHICLE_DAMAGED_CORRECTION_SCALE );
 #else
-            sprintf( name, "%s.png", previewObject->nameModel );
+            snprintf( name, sizeof(name), "%s.png", previewObject->nameModel );
             m_previewImage->ScaleAboutCenter( VEHICLE_CORRECTION_SCALE );
 #endif
         }
@@ -812,7 +812,7 @@ CGuiScreenPhoneBooth::On3DModelLoaded( const PreviewObject* previewObject )
         {
             // show normal vehicle
             //
-            sprintf( name, "%s.png", previewObject->nameModel );
+            snprintf( name, sizeof(name), "%s.png", previewObject->nameModel );
 
             m_previewImage->ScaleAboutCenter( VEHICLE_CORRECTION_SCALE );
         }
