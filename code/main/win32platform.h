@@ -96,6 +96,8 @@ public:
     // Returns true if the change was successful, false if resolution is not supported.
     bool SetResolution( Resolution res, int bpp, bool fullscreen );
 
+    void ToggleFullscreen();
+
     Resolution GetResolution() const;
     int GetBPP() const;
     bool IsFullscreen() const;

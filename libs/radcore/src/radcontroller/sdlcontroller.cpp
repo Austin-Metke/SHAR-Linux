@@ -78,6 +78,69 @@ static const char * g_Sdlipt[] =
     "YAxis"
 };
 
+#ifdef RAD_LINUX
+struct SDLKeyboardMapping
+{
+    SDL_Scancode key;
+    SDL_Scancode keyPositive;
+    SDL_Scancode keyNegative;
+};
+
+static SDLKeyboardMapping g_KeyboardMappings[] =
+{
+    { SDL_SCANCODE_UP,      SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_DOWN,    SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_LEFT,    SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_RIGHT,   SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_RETURN,  SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_ESCAPE,  SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_SPACE,   SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_LSHIFT,  SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_Q,       SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_E,       SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_TAB,     SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_R,       SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_LCTRL,   SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_F,       SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_D,       SDL_SCANCODE_A       },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_W,       SDL_SCANCODE_S       },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+    { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
+};
+
+static float GetKeyboardValueForPoint( unsigned int pointIndex, const char* pType )
+{
+#if SDL_MAJOR_VERSION < 3
+    const Uint8* keyState = SDL_GetKeyboardState( NULL );
+#else
+    const bool* keyState = SDL_GetKeyboardState( NULL );
+#endif
+    if( keyState == NULL || pointIndex >= ( sizeof( g_KeyboardMappings ) / sizeof( SDLKeyboardMapping ) ) )
+        return -1.0f;
+
+    const SDLKeyboardMapping& mapping = g_KeyboardMappings[ pointIndex ];
+
+    if( pType == g_Sdlipt[ 0 ] || pType == g_Sdlipt[ 1 ] )
+    {
+        if( mapping.key != SDL_SCANCODE_UNKNOWN && keyState[ mapping.key ] )
+            return 1.0f;
+        return 0.0f;
+    }
+    else if( pType == g_Sdlipt[ 2 ] || pType == g_Sdlipt[ 3 ] )
+    {
+        float val = 0.5f;
+        if( mapping.keyPositive != SDL_SCANCODE_UNKNOWN && keyState[ mapping.keyPositive ] )
+            val += 0.5f;
+        if( mapping.keyNegative != SDL_SCANCODE_UNKNOWN && keyState[ mapping.keyNegative ] )
+            val -= 0.5f;
+        return val;
+    }
+    return -1.0f;
+}
+#endif
+
 static SDLInputPoint g_SDLPoints[] =
 {
 #if SDL_MAJOR_VERSION < 3
@@ -269,13 +332,6 @@ class radControllerInputPointSDL
 
 	float CalculateNewValue( void )
 	{
-        //
-        // Calculate the current value of the input point according to the
-        // data structure passed in.  We get initialized with the offset
-        // into this data array to get our data.  Knowing this and our type
-        // we can determine our new floating point value.
-        //
-
         float newValue = 0.0f;
 
         if ( m_pController != NULL )
@@ -329,6 +385,23 @@ class radControllerInputPointSDL
                 rAssert( 0 );
             }
         }
+
+#ifdef RAD_LINUX
+        float kbValue = GetKeyboardValueForPoint( m_PointIndex, m_pType );
+        if( kbValue >= 0.0f )
+        {
+            if( m_pType == g_Sdlipt[ 0 ] || m_pType == g_Sdlipt[ 1 ] )
+            {
+                if( kbValue > newValue )
+                    newValue = kbValue;
+            }
+            else
+            {
+                if( fabsf( kbValue - 0.5f ) > fabsf( newValue - 0.5f ) )
+                    newValue = kbValue;
+            }
+        }
+#endif
 
 		return newValue;
 	}
@@ -592,9 +665,9 @@ class radControllerInputPointSDL
     // radControllerInputPointSDL::radControllerInputPointSDL
     //========================================================================
 #if SDL_MAJOR_VERSION < 3
-    radControllerInputPointSDL( SDL_GameController * pController, const char * pType, const char * pName, int id )
+    radControllerInputPointSDL( SDL_GameController * pController, const char * pType, const char * pName, int id, unsigned int pointIndex )
 #else
-    radControllerInputPointSDL( SDL_Gamepad * pController, const char * pType, const char * pName, int id )
+    radControllerInputPointSDL( SDL_Gamepad * pController, const char * pType, const char * pName, int id, unsigned int pointIndex )
 #endif
         :
         radRefCount( 0 ),
@@ -607,6 +680,7 @@ class radControllerInputPointSDL
         m_pType( pType ),
         m_pName( pName ),
         m_Identifier( id ),
+        m_PointIndex( pointIndex ),
         m_pController( pController )
     {
         radMemoryMonitorIdentifyAllocation( this, g_nameFTech, "radControllerInputPointSDL" );
@@ -643,6 +717,7 @@ class radControllerInputPointSDL
     const char * m_pName;
 
     int m_Identifier;
+    unsigned int m_PointIndex;
 #if SDL_MAJOR_VERSION < 3
     SDL_GameController * m_pController;
 #else
@@ -671,12 +746,6 @@ class radControllerSDL
 
     virtual void iPoll( unsigned int virtualTime )
     {
-        //
-        // Query the hardware for current state and store it in the
-        // controller buffer, it will be pulled out by virtual time
-        // changing.
-        //
-
         if ( GetRefCount( ) > 1 )
         {
             if ( m_pController != NULL )
@@ -686,19 +755,13 @@ class radControllerSDL
 #else
                 SDL_UpdateGamepads();
 #endif
-            }
 
-            //
-            // Send our output point data to the device here
-            //
-
-            {                
                 IRadControllerOutputPoint * pICop2_Left  = reinterpret_cast< IRadControllerOutputPoint * >( m_xIOl_OutputPoints->GetAt( 0 ) );
                 IRadControllerOutputPoint * pICop2_Right = reinterpret_cast< IRadControllerOutputPoint * >( m_xIOl_OutputPoints->GetAt( 1 ) );
 
                 uint16_t newLeftGain  = (uint16_t) ( pICop2_Left->GetGain( ) * 65535.0f );
                 uint16_t newRightGain = (uint16_t) ( pICop2_Right->GetGain( ) * 65535.0f );
-        
+
                 if
                 (
                     ( newLeftGain  != m_LeftGain ) ||
@@ -708,29 +771,17 @@ class radControllerSDL
                     m_LeftGain =  newLeftGain;
                     m_RightGain = newRightGain;
 
-					rAssert(m_pController != NULL);
-
                     int result = 0;
-					if(m_pController != NULL)
-					{
 #if SDL_MAJOR_VERSION < 3
-                        result = SDL_GameControllerRumble( m_pController,
-                            m_LeftGain, m_RightGain, 0 );
+                    result = SDL_GameControllerRumble( m_pController,
+                        m_LeftGain, m_RightGain, 0 );
 #else
-                        result = SDL_RumbleGamepad( m_pController,
-                            m_LeftGain, m_RightGain, 0 );
+                    result = SDL_RumbleGamepad( m_pController,
+                        m_LeftGain, m_RightGain, 0 );
 #endif
-					}
-
-                    //
-                    // Old Controllers don't support output and this will
-                    // fail
-                    //
-
-                    // rAssert( result == ERROR_IO_PENDING );
                 }
             }
-        }                  
+        }
     }
 
     //========================================================================
@@ -794,6 +845,14 @@ class radControllerSDL
 
     virtual bool IsConnected( void )
     {
+        if ( m_pController == NULL )
+        {
+#ifdef RAD_LINUX
+            return true;
+#else
+            return false;
+#endif
+        }
 #if SDL_MAJOR_VERSION < 3
         return SDL_GameControllerGetAttached( m_pController ) == SDL_TRUE;
 #else
@@ -1092,7 +1151,8 @@ class radControllerSDL
 #endif
         unsigned int virtualTime,
         unsigned int bufferTime,
-        unsigned int pollingRate
+        unsigned int pollingRate,
+        int portOverride = -1
     )
         :
         radRefCount( 0 ),
@@ -1102,27 +1162,24 @@ class radControllerSDL
 
         m_LeftGain = m_RightGain = 0;
 
-        //
-        // Get an object list to store our input points
-        //
-
         ::radObjectListCreate( & m_xIOl_InputPoints, g_ControllerSystemAllocator );
         ::radObjectListCreate( & m_xIOl_OutputPoints, g_ControllerSystemAllocator );
 
-        //
-        // Get a string to store our location
-        //
-
         ::radStringCreate( & m_xIString_Location, g_ControllerSystemAllocator );
 
-        //
-        // Create our location name based on our port and slot
-        //
+        int iController = 0;
+        if ( portOverride >= 0 )
+        {
+            iController = portOverride;
+        }
+        else if ( pController != NULL )
+        {
 #if SDL_MAJOR_VERSION < 3
-        int iController = std::max(SDL_GameControllerGetPlayerIndex( pController ), 0);
+            iController = std::max(SDL_GameControllerGetPlayerIndex( pController ), 0);
 #else
-        int iController = std::max(SDL_GetGamepadPlayerIndex( pController ), 0);
+            iController = std::max(SDL_GetGamepadPlayerIndex( pController ), 0);
 #endif
+        }
 		m_xIString_Location->SetSize( 12 );
         m_xIString_Location->Append( "Port" );
         m_xIString_Location->Append( (unsigned int) iController );
@@ -1140,7 +1197,8 @@ class radControllerSDL
                 m_pController,
                 g_SDLPoints[ button ].m_pType, 
                 g_SDLPoints[ button ].m_pName,
-                g_SDLPoints[ button ].m_Mask
+                g_SDLPoints[ button ].m_Mask,
+                button
             );
 
             m_xIOl_InputPoints->AddObject( pInputPoint );
@@ -1726,9 +1784,45 @@ class radControllerSystemSDL
         SDL_free( joysticks );
 #endif
 
-        //
-        // Set everything to know state
-        //        
+#ifdef RAD_LINUX
+        if( GetControllerAtLocation( "Port0\\Slot0" ) == NULL )
+        {
+            unsigned int virtualTime = radTimeGetMilliseconds() + m_VirtualTimeAdjust;
+            unsigned int pollingRate = 10;
+            if( m_xITimer != NULL )
+            {
+                pollingRate = m_xITimer->GetTimeout();
+            }
+
+            ref< IRadController > xKeyboardController = new (g_ControllerSystemAllocator) radControllerSDL
+            (
+                g_ControllerSystemAllocator,
+                (
+#if SDL_MAJOR_VERSION < 3
+                    (SDL_GameController*)
+#else
+                    (SDL_Gamepad*)
+#endif
+                    NULL
+                ),
+                virtualTime,
+                m_EventBufferTime,
+                pollingRate,
+                0
+            );
+
+            m_xIOl_Controllers->AddObject( xKeyboardController );
+
+            IRadWeakInterfaceWrapper* pIWir;
+            m_xIOl_Callbacks->Reset();
+            while((pIWir = reinterpret_cast<IRadWeakInterfaceWrapper*>(m_xIOl_Callbacks->GetNext())))
+            {
+                IRadControllerConnectionChangeCallback* pCallback = (IRadControllerConnectionChangeCallback*)pIWir->GetWeakInterface();
+                pCallback->OnControllerConnectionStatusChange( xKeyboardController );
+            }
+        }
+#endif
+
         SetCaptureRate( 10 );
         MapVirtualTime( 0, 0 );
         SetBufferTime( 0 );

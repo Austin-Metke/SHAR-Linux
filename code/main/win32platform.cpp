@@ -334,8 +334,7 @@ bool Win32Platform::InitializeWindow()
 #ifndef RAD_VITA
     flags |= SDL_WINDOW_OPENGL;
 #endif
-#ifdef __SWITCH__
-    // Support switching between docked and handheld mode
+#if defined(__SWITCH__) || defined(RAD_LINUX)
     flags |= SDL_WINDOW_RESIZABLE;
 #endif
     int w, h;
@@ -536,6 +535,10 @@ void Win32Platform::InitializePlatform()
     GetGameConfigManager()->LoadConfigFile();
 #endif
 
+#ifdef RAD_LINUX
+    mFullscreen = true;
+#endif
+
     //
     // Rendering is good.
     //
@@ -547,10 +550,23 @@ void Win32Platform::InitializePlatform()
     DisplaySplashScreen( Error ); // blank screen
 
 #ifndef __SWITCH__
-    //
-    // Show in fullscreen if fullscreen flag is set.
-    //
-    SDL_SetWindowFullscreen( mWnd, mFullscreen ? SDL_WINDOW_FULLSCREEN : 0 );
+    if( mFullscreen )
+    {
+#ifdef RAD_LINUX
+#if SDL_MAJOR_VERSION < 3
+        SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN_DESKTOP );
+#else
+        SDL_SetWindowFullscreenMode( mWnd, NULL );
+        SDL_SetWindowFullscreen( mWnd, true );
+#endif
+#else
+        SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN );
+#endif
+    }
+    else
+    {
+        SDL_SetWindowFullscreen( mWnd, 0 );
+    }
 #endif
 
     //
@@ -932,6 +948,34 @@ bool Win32Platform::SetResolution( Resolution res, int bpp, bool fullscreen )
     ResizeWindow();
 
     return true;
+}
+
+void Win32Platform::ToggleFullscreen()
+{
+    mFullscreen = !mFullscreen;
+
+    if( mFullscreen )
+    {
+#ifdef RAD_LINUX
+#if SDL_MAJOR_VERSION < 3
+        SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN_DESKTOP );
+#else
+        SDL_SetWindowFullscreenMode( mWnd, NULL );
+        SDL_SetWindowFullscreen( mWnd, true );
+#endif
+#else
+        SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN );
+#endif
+    }
+    else
+    {
+#if SDL_MAJOR_VERSION < 3
+        SDL_SetWindowFullscreen( mWnd, 0 );
+#else
+        SDL_SetWindowFullscreen( mWnd, false );
+#endif
+        ResizeWindow();
+    }
 }
 
 //=============================================================================
@@ -1954,6 +1998,19 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
             	return 0;
             case SDLK_F10:
             	return 0;
+#ifdef RAD_LINUX
+            case SDLK_F11:
+#if SDL_MAJOR_VERSION < 3
+                if( event->type == SDL_KEYDOWN )
+#else
+                if( event->type == SDL_EVENT_KEY_DOWN )
+#endif
+                {
+                    if( spInstance != NULL )
+                        spInstance->ToggleFullscreen();
+                }
+                return 0;
+#endif
             default: break;
             }
         }

@@ -22,5 +22,8 @@ tAmbientLight::~tAmbientLight()
 
 void tAmbientLight::Update(void)
 {
+   if(!active)
+       return;
+
    p3d::pddi->SetAmbientLight(colour);
 }

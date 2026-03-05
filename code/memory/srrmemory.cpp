@@ -248,6 +248,13 @@ throw()
 #endif
 #endif
 {
+#ifdef RAD_LINUX
+    if( !g_MainStarted && !gMemorySystemInitialized )
+    {
+        free( pMemory );
+        return;
+    }
+#endif
     radMemoryFree( pMemory );
 }
 
@@ -321,6 +328,13 @@ throw()
 #endif
 #endif
 {
+#ifdef RAD_LINUX
+    if( !g_MainStarted && !gMemorySystemInitialized )
+    {
+        free( pMemory );
+        return;
+    }
+#endif
     radMemoryFree( pMemory );
 }
 

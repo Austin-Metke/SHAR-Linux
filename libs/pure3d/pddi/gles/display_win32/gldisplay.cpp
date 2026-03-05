@@ -172,7 +172,27 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
 #endif
 
 #ifndef __SWITCH__
-    SDL_SetWindowFullscreen(win, mode == PDDI_DISPLAY_FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0);
+    if( mode == PDDI_DISPLAY_FULLSCREEN )
+    {
+#ifdef RAD_LINUX
+#if SDL_MAJOR_VERSION < 3
+        SDL_SetWindowFullscreen(win, SDL_WINDOW_FULLSCREEN_DESKTOP);
+#else
+        SDL_SetWindowFullscreenMode(win, NULL);
+        SDL_SetWindowFullscreen(win, true);
+#endif
+#else
+        SDL_SetWindowFullscreen(win, SDL_WINDOW_FULLSCREEN);
+#endif
+    }
+    else
+    {
+#if SDL_MAJOR_VERSION < 3
+        SDL_SetWindowFullscreen(win, 0);
+#else
+        SDL_SetWindowFullscreen(win, false);
+#endif
+    }
 #endif
 #if SDL_MAJOR_VERSION < 3
     SDL_GL_GetDrawableSize( win, &winWidth, &winHeight );
