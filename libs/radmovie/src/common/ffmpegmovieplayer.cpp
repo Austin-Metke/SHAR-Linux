@@ -681,5 +681,16 @@ void radMovieService2( void )
     }
 }
 
+#else // RAD_NO_MOVIES
+
+#include <raddebug.hpp>
+#include <radmovie2.hpp>
+
+void radMovieInitialize2( radMemoryAllocator ) {}
+void radMovieTerminate2( void ) {}
+void radMovieService2( void ) {}
+IRadMoviePlayer2 * radMoviePlayerCreate2( radMemoryAllocator ) { return NULL; }
+IRadMovieRenderStrategy * radMovieSimpleFullScreenRenderStrategyCreate( radMemoryAllocator ) { return NULL; }
+
 #endif // ! RAD_NO_MOVIES
 #endif // ! RAD_MOVIEPLAYER_USE_BINK

@@ -47,6 +47,9 @@ IRadNameSpace * radNameSpaceFindObjectNameSpace( const char * pName );
 IRefCount *     radNameSpaceGetInstance(  const char * pNameSpaceName, const char * pInstanceName );
 IRefCount *     radNameSpaceGetInstance(  radKey32 nameSpaceKey, radKey32 instanceName );
 
+template<> IRadNameSpace* radLinkedClass< IRadNameSpace >::s_pLinkedClassHead;
+template<> IRadNameSpace* radLinkedClass< IRadNameSpace >::s_pLinkedClassTail;
+
 struct IRadNameSpace
     : 
     public radLinkedClass< IRadNameSpace >,

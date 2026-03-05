@@ -538,7 +538,11 @@ if(SRR2_REGION STREQUAL "PAL")
 	)
 endif()
 
-add_executable(${PROJECT_NAME} ${SRR2_SOURCES})
+if(ANDROID)
+	add_library(${PROJECT_NAME} SHARED ${SRR2_SOURCES})
+else()
+	add_executable(${PROJECT_NAME} ${SRR2_SOURCES})
+endif()
 target_link_libraries(${PROJECT_NAME}
 	${SDL_LIBRARY}
 	choreo
@@ -584,7 +588,7 @@ if(VITA)
 	)
 endif()
 if(ANDROID)
-	target_link_libraries(${PROJECT_NAME} EGL GLESv2 android log)
+	target_link_libraries(${PROJECT_NAME} EGL GLESv2 OpenSLES android log)
 elseif(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	target_link_libraries(${PROJECT_NAME} OpenGL::GL)
 endif()

@@ -112,22 +112,10 @@ if(SRR2_REROUTE_ALL_HEAP_ALLOCATIONS)
 endif()
 if(SRR2_USE_BINK)
 	add_definitions(-DRAD_MOVIEPLAYER_USE_BINK)
-else()
-	find_package(PkgConfig REQUIRED)
-	if(ANDROID)
+elseif(ANDROID)
+	if(DEFINED ENV{PKG_CONFIG_LIBDIR} OR DEFINED SRR2_ANDROID_FFMPEG)
+		find_package(PkgConfig REQUIRED)
 		pkg_check_modules(FFmpeg IMPORTED_TARGET
-				libavformat
-				libavcodec
-				libavutil
-				libswresemble
-				libswscale
-		)
-		if(NOT FFmpeg_FOUND)
-			message(WARNING "FFmpeg not found for Android. Video playback will be unavailable.")
-			add_definitions(-DRAD_NO_MOVIES)
-		endif()
-	else()
-		pkg_check_modules(FFmpeg REQUIRED IMPORTED_TARGET
 				libavformat
 				libavcodec
 				libavutil
@@ -135,6 +123,19 @@ else()
 				libswscale
 		)
 	endif()
+	if(NOT FFmpeg_FOUND)
+		message(STATUS "FFmpeg not available for Android. Video playback disabled (RAD_NO_MOVIES).")
+		add_definitions(-DRAD_NO_MOVIES)
+	endif()
+else()
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(FFmpeg REQUIRED IMPORTED_TARGET
+			libavformat
+			libavcodec
+			libavutil
+			libswresample
+			libswscale
+	)
 endif()
 if(SRR2_MICROPROFILE)
 	add_definitions(-DMICROPROFILE_ENABLED)
