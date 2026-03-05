@@ -513,8 +513,8 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenMultiHud" );
     #endif
 #endif
 
-        char p3dFile[ 16 ];
-        sprintf( p3dFile, "l%dhudmap", GetGameplayManager()->GetCurrentLevelIndex() + 1 );
+        char p3dFile[ 20 ];
+        snprintf( p3dFile, sizeof(p3dFile), "l%dhudmap", GetGameplayManager()->GetCurrentLevelIndex() + 1 );
         m_hudMap[ i ] = new CHudMap( pPage, i, p3dFile );
         rAssert( m_hudMap[ i ] != NULL );
 

@@ -758,11 +758,11 @@ IGuiScreenRewards::Load3DModel( const PreviewObject* previewObject )
 
     if( m_ID == GUI_SCREEN_ID_PHONE_BOOTH )
     {
-        char filename[ 64 ];
+        char filename[ 72 ];
 
         // load normal 2D car image
         //
-        sprintf( filename, "%s.p3d", previewObject->filenameModel );
+        snprintf( filename, sizeof(filename), "%s.p3d", previewObject->filenameModel );
         GetLoadingManager()->AddRequest( FILEHANDLER_PURE3D,
                                          filename,
                                          GMA_LEVEL_OTHER,
@@ -772,7 +772,7 @@ IGuiScreenRewards::Load3DModel( const PreviewObject* previewObject )
 #ifdef LOAD_DAMAGED_VEHICLE_IMAGES
         // load damaged 2D car image
         //
-        sprintf( filename, "%sD.p3d", previewObject->filenameModel );
+        snprintf( filename, sizeof(filename), "%sD.p3d", previewObject->filenameModel );
         GetLoadingManager()->AddRequest( FILEHANDLER_PURE3D,
                                          filename,
                                          GMA_LEVEL_OTHER,

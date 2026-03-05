@@ -648,19 +648,19 @@ void AnimatedIcon::SetUpContents( const char* iconName )
 
     rAssert( mAnimIcon.drawable != NULL );
 
-    char controllerName[256];
-    sprintf( controllerName, "%s_controller", iconName );
+    char controllerName[280];
+    snprintf( controllerName, sizeof(controllerName), "%s_controller", iconName );
 
     tRefCounted::Assign(mAnimIcon.multiController, p3d::find<tMultiController>( controllerName ) );
 
     // Try and find the shadows (Collector cards have them, others are optional)
     // Append _shadow to the icon name to get the shadow name
-    char shadowDrawableName[256];
-    sprintf( shadowDrawableName, "%s_shadow", iconName );
+    char shadowDrawableName[280];
+    snprintf( shadowDrawableName, sizeof(shadowDrawableName), "%s_shadow", iconName );
     tRefCounted::Assign(mAnimIcon.shadowDrawable, p3d::find<tDrawable>( shadowDrawableName ));
     // Now try and find the shadow multicontroller
-    char shadowControllerName[256];
-    sprintf( shadowControllerName, "%s_controller", shadowDrawableName );
+    char shadowControllerName[296];
+    snprintf( shadowControllerName, sizeof(shadowControllerName), "%s_controller", shadowDrawableName );
     tRefCounted::Assign(mAnimIcon.shadowController, p3d::find<tMultiController>( shadowControllerName ) );
 }
 
