@@ -14,6 +14,28 @@ Finally download the [latest release](https://github.com/ZenoArrows/The-Simpsons
 
 On the PS Vita this game also requires that you have `libshacccg.suprx` installed on your console. This will be installed during the first run setup of the [VitaDB Downloader](https://vitadb.rinnegatamante.it/#/info/877), but can also be installed separately using [ShaRKBR33D](https://vitadb.rinnegatamante.it/#/info/997).
 
+# Building on Linux
+
+Dependencies (package names for Debian/Ubuntu shown):
+
+```
+sudo apt install build-essential cmake pkg-config libsdl2-dev libopenal-dev libpng-dev \
+    libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+    libgl1-mesa-dev
+```
+
+SDL3 is used when available; otherwise SDL2 is required. FFmpeg is used for video playback unless the proprietary Bink SDK is provided.
+
+Build steps:
+
+```
+mkdir -p build-linux
+cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Release
+cmake --build build-linux -j$(nproc)
+```
+
+The native Linux binary is placed at `build-linux/code/SRR2`. Keep the executable next to your PC game assets (the working directory is used to find the data files).
+
 # Multi-Language support
 
 The PAL version supports multiple languages and will use the language that matches the system language of your console. If your console is set to a language that is not supported a menu will be shown giving you the option to choose between the supported languages.
