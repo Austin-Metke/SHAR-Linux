@@ -1,2 +1,0 @@
-/usr/bin/ar qc libradmath.a CMakeFiles/radmath.dir/radmath/matrix.cpp.o CMakeFiles/radmath.dir/radmath/numerical.cpp.o CMakeFiles/radmath.dir/radmath/plane.cpp.o CMakeFiles/radmath.dir/radmath/quaternion.cpp.o CMakeFiles/radmath.dir/radmath/radmath.cpp.o CMakeFiles/radmath.dir/radmath/random.cpp.o CMakeFiles/radmath.dir/radmath/spline.cpp.o CMakeFiles/radmath.dir/radmath/triangle.cpp.o CMakeFiles/radmath.dir/radmath/trig.cpp.o CMakeFiles/radmath.dir/radmath/vector.cpp.o
-/usr/bin/ranlib libradmath.a

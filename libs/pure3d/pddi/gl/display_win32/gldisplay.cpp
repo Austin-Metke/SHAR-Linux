@@ -170,9 +170,10 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
     if (pDisplayMode)
         SDL_SetWindowDisplayMode(win, pDisplayMode);
 #else
-    const SDL_DisplayMode* pDisplayMode = SDL_GetClosestFullscreenDisplayMode(displayInfo->id, x, y, 0.0f, false);
-    if (pDisplayMode)
-        SDL_SetWindowFullscreenMode(win, pDisplayMode);
+    SDL_DisplayMode closestMode = {};
+    bool found = SDL_GetClosestFullscreenDisplayMode(displayInfo->id, x, y, 0.0f, false, &closestMode);
+    if (found)
+        SDL_SetWindowFullscreenMode(win, &closestMode);
 #endif
 
 #ifndef __SWITCH__

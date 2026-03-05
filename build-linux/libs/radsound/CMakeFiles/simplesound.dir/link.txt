@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/simplesound.dir/link.d CMakeFiles/simplesound.dir/sample/simplesound/src/main.cpp.o -o simplesound  libradsound.a /usr/lib/libopenal.so ../radcore/libradcore.a /usr/lib/libSDL2-2.0.so.0.3200.64 /usr/lib/libSDL2main.a
