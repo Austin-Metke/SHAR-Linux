@@ -58,7 +58,7 @@ find_package(Threads REQUIRED)
 find_package(OpenAL REQUIRED)
 
 # On native Linux, find system OpenGL
-if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+if(UNIX AND NOT VITA AND NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	find_package(OpenGL REQUIRED)
 endif()
 
@@ -93,6 +93,15 @@ add_definitions(
 # Linux-specific defines
 if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	add_definitions(-DRAD_LINUX)
+endif()
+
+# Android-specific defines
+if(ANDROID)
+	add_definitions(-DRAD_ANDROID)
+	# GLES2 is the default renderer on Android
+	if(NOT DEFINED SRR2_P3D_PDDI)
+		set(SRR2_P3D_PDDI "GLES2")
+	endif()
 endif()
 
 if(SRR2_REGION STREQUAL "PAL")

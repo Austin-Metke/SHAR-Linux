@@ -538,7 +538,13 @@ if(SRR2_REGION STREQUAL "PAL")
 	)
 endif()
 
-add_executable(${PROJECT_NAME} ${SRR2_SOURCES})
+# On Android, build as a shared library (.so) loaded by SDLActivity;
+# on all other platforms, build a normal executable.
+if(ANDROID)
+	add_library(${PROJECT_NAME} SHARED ${SRR2_SOURCES})
+else()
+	add_executable(${PROJECT_NAME} ${SRR2_SOURCES})
+endif()
 target_link_libraries(${PROJECT_NAME}
 	${SDL_LIBRARY}
 	choreo
@@ -583,8 +589,16 @@ if(VITA)
 		SceRazorCapture_stub_weak
 	)
 endif()
-if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+if(UNIX AND NOT VITA AND NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	target_link_libraries(${PROJECT_NAME} OpenGL::GL)
+endif()
+if(ANDROID)
+	target_link_libraries(${PROJECT_NAME}
+		GLESv2
+		EGL
+		log
+		android
+	)
 endif()
 if(SRR2_USE_BINK)
 	target_link_libraries(${PROJECT_NAME} bink)

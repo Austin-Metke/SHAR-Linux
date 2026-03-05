@@ -15,7 +15,9 @@
 //=============================================================================
 // Platform identification
 //=============================================================================
-#if defined(RAD_LINUX)
+#if defined(__ANDROID__)
+    #define SHAR_PLATFORM_NAME "Android"
+#elif defined(RAD_LINUX)
     #define SHAR_PLATFORM_NAME "Linux"
 #elif defined(__SWITCH__)
     #define SHAR_PLATFORM_NAME "NintendoSwitch"
@@ -36,7 +38,12 @@
 // On Switch, assets are in romfs.
 // On Vita, assets are at ux0:data/simpsons.
 
-#if defined(RAD_LINUX)
+#if defined(__ANDROID__)
+    // On Android the data directory is determined at runtime via JNI
+    // (SHARActivity.getGameDataPath()).  The compile-time default points at
+    // external storage so that file-path constants still compile.
+    #define SHAR_DEFAULT_DATA_DIR "/sdcard/SHAR"
+#elif defined(RAD_LINUX)
     #define SHAR_DEFAULT_DATA_DIR "."
 #elif defined(__SWITCH__)
     // romfs is mounted at root by romfsInit()
@@ -51,7 +58,15 @@
 // OS-specific init/shutdown stubs
 //=============================================================================
 
-#if defined(RAD_LINUX)
+#if defined(__ANDROID__)
+
+    // On Android the SDL activity drives initialisation; the pre-main
+    // malloc() fallback is needed just like on desktop Linux.
+    extern void radLinuxSetMainStarted();
+    static inline void PlatformPreInit(void) { radLinuxSetMainStarted(); }
+    static inline void PlatformPostShutdown(void) {}
+
+#elif defined(RAD_LINUX)
 
     // Disables the pre-main malloc() fallback so the game memory system takes over.
     extern void radLinuxSetMainStarted();

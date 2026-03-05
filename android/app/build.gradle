@@ -1,0 +1,61 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.radicalentertainment.shar'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.radicalentertainment.shar"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "00.61"
+
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared",
+                          "-DSRR2_P3D_PDDI=GLES2",
+                          "-DSRR2_USE_BINK=OFF"
+                cppFlags "-frtti -fexceptions"
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "../../CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    sourceSets {
+        main {
+            // Use the default Android source layout
+            java.srcDirs = ['src/main/java']
+            res.srcDirs = ['src/main/res']
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+
+            // Game assets should be placed in this directory
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}
