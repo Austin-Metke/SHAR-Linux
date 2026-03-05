@@ -53,7 +53,9 @@
 
 #if defined(RAD_LINUX)
 
-    static inline void PlatformPreInit(void) {}
+    // Disables the pre-main malloc() fallback so the game memory system takes over.
+    extern void radLinuxSetMainStarted();
+    static inline void PlatformPreInit(void) { radLinuxSetMainStarted(); }
     static inline void PlatformPostShutdown(void) {}
 
 #elif defined(__SWITCH__)

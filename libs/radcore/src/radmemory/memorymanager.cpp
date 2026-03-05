@@ -47,7 +47,7 @@
     extern void MemoryHackCallback();
 #endif
 
-#if ( defined RAD_XBOX ) || (defined RAD_GAMECUBE) || (defined RAD_MW) || (defined RAD_WIN32)
+#if ( defined RAD_XBOX ) || (defined RAD_GAMECUBE) || (defined RAD_MW) || (defined RAD_WIN32) || (defined RAD_LINUX)
     extern void MemoryHackCallback();
 #endif
 
@@ -510,7 +510,7 @@ void * radMemoryAlloc( radMemoryAllocator allocator, unsigned int numberOfBytes 
         allocator = HACK_SMALL_ALLOC;
     }
 #endif
-#if ( defined RAD_XBOX ) || ( defined RAD_GAMECUBE ) || ( defined RAD_MW ) || ( defined RAD_WIN32 )
+#if ( defined RAD_XBOX ) || ( defined RAD_GAMECUBE ) || ( defined RAD_MW ) || ( defined RAD_WIN32 ) || ( defined RAD_LINUX )
     if ( !g_Initialized )
     {
         MemoryHackCallback();
@@ -563,7 +563,7 @@ void * radMemoryAllocAligned
     unsigned int alignment
 )
 {
-#if ( defined RAD_XBOX ) || ( defined RAD_GAMECUBE ) || ( defined RAD_MW ) || ( defined RAD_WIN32 )
+#if ( defined RAD_XBOX ) || ( defined RAD_GAMECUBE ) || ( defined RAD_MW ) || ( defined RAD_WIN32 ) || ( defined RAD_LINUX )
     if ( !g_Initialized )
     {
         MemoryHackCallback();
