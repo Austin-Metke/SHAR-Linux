@@ -498,15 +498,15 @@ void Profiler::Render(void)
         sprintf( total, "%3.2f", totalTime );
 
 
-        strncpy( indentedName, mSamples[i].szName, 255 );
-        indentedName[255] = '\0';
+        strncpy( indentedName, mSamples[i].szName, sizeof(indentedName) - 1 );
+        indentedName[sizeof(indentedName) - 1] = '\0';
 
         unsigned int numParents = mSamples[i].iNumParents;
         if( numParents > 20 ) numParents = 20;
         char indentPrefix[ 64 ] = "";
         for( indent=0; indent<numParents; indent++ )
         {
-            strcat( indentPrefix, "   " );
+            strncat( indentPrefix, "   ", sizeof(indentPrefix) - strlen(indentPrefix) - 1 );
         }
         snprintf( name, sizeof(name), "%s%s", indentPrefix, indentedName );
         snprintf(line, sizeof(line), "%5s\t| %5s\t|%2s\t| %5s\t| %s ", ave, sample, num, total, name);

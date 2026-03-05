@@ -1126,12 +1126,15 @@ void PedestrianManager::SwitchModelGroup( int toGroupID )
 #ifdef RAD_DEBUG
     char msg[256];
     strcpy( msg, "*** SWITCHING TO NEW MODEL GROUP: " );
+    size_t msgLen = strlen( msg );
     for( int i=0; i<mModelGroups[toGroupID].numModels; i++ )
     {
-        strncat( msg, mModelGroups[toGroupID].models[i].name, sizeof(msg) - strlen(msg) - 1 );
-        strncat( msg, " ", sizeof(msg) - strlen(msg) - 1 );
+        strncat( msg + msgLen, mModelGroups[toGroupID].models[i].name, sizeof(msg) - msgLen - 1 );
+        msgLen = strlen( msg );
+        strncat( msg + msgLen, " ", sizeof(msg) - msgLen - 1 );
+        msgLen++;
     }
-    strncat( msg, "\n", sizeof(msg) - strlen(msg) - 1 );
+    strncat( msg + msgLen, "\n", sizeof(msg) - msgLen - 1 );
     //rDebugPrintf( msg );
 #endif
 
