@@ -14,8 +14,10 @@
     <!-- Prevent the screen from dimming during gameplay -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- Read game data from external storage -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Read game data from external storage (API < 29 fallback) -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <application
         android:allowBackup="true"
