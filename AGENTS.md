@@ -26,3 +26,11 @@ Both run without issues; they stay alive until terminated (use `timeout 5` to ru
 ### Running the game
 
 The `SRR2` binary requires PC retail game assets in the working directory. Without those assets the binary will segfault immediately after SDL/audio initialization. ALSA warnings about missing sound card are expected in the VM and do not affect the build.
+
+### Android cross-compilation
+
+The codebase has Android platform support (`RAD_ANDROID`). To cross-compile:
+1. Install the Android NDK
+2. Configure with: `cmake -S . -B build-android -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 -DSRR2_P3D_PDDI=GLES2`
+3. SDL2 and OpenAL Soft must be pre-built for Android and provided via `CMAKE_PREFIX_PATH`
+4. FFmpeg is optional on Android — if not found, video playback is disabled (`RAD_NO_MOVIES`)

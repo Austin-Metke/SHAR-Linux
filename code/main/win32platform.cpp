@@ -337,6 +337,9 @@ bool Win32Platform::InitializeWindow()
 #if defined(__SWITCH__) || defined(RAD_LINUX)
     flags |= SDL_WINDOW_RESIZABLE;
 #endif
+#ifdef RAD_ANDROID
+    flags |= SDL_WINDOW_FULLSCREEN;
+#endif
     int w, h;
     TranslateResolution( StartingResolution, w, h );
 #if SDL_MAJOR_VERSION < 3
@@ -535,7 +538,7 @@ void Win32Platform::InitializePlatform()
     GetGameConfigManager()->LoadConfigFile();
 #endif
 
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
     mFullscreen = true;
 #endif
 
@@ -549,7 +552,7 @@ void Win32Platform::InitializePlatform()
     //
     DisplaySplashScreen( Error ); // blank screen
 
-#ifndef __SWITCH__
+#if !defined(__SWITCH__) && !defined(RAD_ANDROID)
     if( mFullscreen )
     {
 #ifdef RAD_LINUX
@@ -1719,6 +1722,28 @@ void Win32Platform::TranslateResolution( Resolution res, int&x, int&y )
 #elif defined(RAD_VITA)
     x = 960;
     y = 544;
+#elif defined(RAD_ANDROID)
+    SDL_DisplayMode displayMode;
+#if SDL_MAJOR_VERSION < 3
+    if( SDL_GetCurrentDisplayMode( 0, &displayMode ) == 0 )
+    {
+        x = displayMode.w;
+        y = displayMode.h;
+    }
+    else
+#else
+    const SDL_DisplayMode *pMode = SDL_GetCurrentDisplayMode( SDL_GetPrimaryDisplay() );
+    if( pMode )
+    {
+        x = pMode->w;
+        y = pMode->h;
+    }
+    else
+#endif
+    {
+        x = 1920;
+        y = 1080;
+    }
 #else
     switch( res )
     {
@@ -1998,7 +2023,7 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
             	return 0;
             case SDLK_F10:
             	return 0;
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) && !defined(RAD_ANDROID)
             case SDLK_F11:
 #if SDL_MAJOR_VERSION < 3
                 if( event->type == SDL_KEYDOWN )

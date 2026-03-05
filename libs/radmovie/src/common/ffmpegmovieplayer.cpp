@@ -23,6 +23,7 @@
 #include <radoptions.hpp>
 
 #ifndef RAD_MOVIEPLAYER_USE_BINK
+#ifndef RAD_NO_MOVIES
 
 #include <raddebug.hpp>
 #include <radmath/radmath.hpp>
@@ -680,4 +681,5 @@ void radMovieService2( void )
     }
 }
 
+#endif // ! RAD_NO_MOVIES
 #endif // ! RAD_MOVIEPLAYER_USE_BINK

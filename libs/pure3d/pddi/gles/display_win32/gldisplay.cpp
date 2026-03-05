@@ -171,7 +171,7 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
         SDL_SetWindowFullscreenMode(win, &closestMode);
 #endif
 
-#ifndef __SWITCH__
+#if !defined(__SWITCH__) && !defined(RAD_ANDROID)
     if( mode == PDDI_DISPLAY_FULLSCREEN )
     {
 #ifdef RAD_LINUX

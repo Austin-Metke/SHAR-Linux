@@ -184,7 +184,9 @@ target_link_libraries(pddi
 	radmath
 	radcore
 )
-if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+if(ANDROID)
+	target_link_libraries(pddi EGL GLESv2)
+elseif(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	target_link_libraries(pddi OpenGL::GL)
 endif()
 

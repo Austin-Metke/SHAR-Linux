@@ -6,7 +6,7 @@
 //   - OS-specific initialization/shutdown
 //   - Platform identification
 //
-// Platforms: Linux (native x86_64), Nintendo Switch, PS Vita
+// Platforms: Linux (native x86_64), Android, Nintendo Switch, PS Vita
 //=============================================================================
 
 #ifndef PLATFORM_CONFIG_H
@@ -15,7 +15,9 @@
 //=============================================================================
 // Platform identification
 //=============================================================================
-#if defined(RAD_LINUX)
+#if defined(RAD_ANDROID)
+    #define SHAR_PLATFORM_NAME "Android"
+#elif defined(RAD_LINUX)
     #define SHAR_PLATFORM_NAME "Linux"
 #elif defined(__SWITCH__)
     #define SHAR_PLATFORM_NAME "NintendoSwitch"
@@ -33,10 +35,13 @@
 // Can be overridden by setting the SHAR_DATA_DIR environment variable, or by
 // passing -datadir <path> on the command line.
 //
+// On Android, assets are loaded from the app's internal storage.
 // On Switch, assets are in romfs.
 // On Vita, assets are at ux0:data/simpsons.
 
-#if defined(RAD_LINUX)
+#if defined(RAD_ANDROID)
+    #define SHAR_DEFAULT_DATA_DIR NULL
+#elif defined(RAD_LINUX)
     #define SHAR_DEFAULT_DATA_DIR "."
 #elif defined(__SWITCH__)
     // romfs is mounted at root by romfsInit()
@@ -51,7 +56,23 @@
 // OS-specific init/shutdown stubs
 //=============================================================================
 
-#if defined(RAD_LINUX)
+#if defined(RAD_ANDROID)
+
+    #include <SDL.h>
+    #include <unistd.h>
+    extern void radAndroidSetMainStarted();
+    static inline void PlatformPreInit(void)
+    {
+        radAndroidSetMainStarted();
+        const char* internalPath = SDL_AndroidGetInternalStoragePath();
+        if(internalPath)
+        {
+            chdir(internalPath);
+        }
+    }
+    static inline void PlatformPostShutdown(void) {}
+
+#elif defined(RAD_LINUX)
 
     // Disables the pre-main malloc() fallback so the game memory system takes over.
     extern void radLinuxSetMainStarted();

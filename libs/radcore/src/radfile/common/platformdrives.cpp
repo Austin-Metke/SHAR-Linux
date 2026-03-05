@@ -70,6 +70,8 @@ void PlatformDrivesGetDefaultDrive( char* driveSpec )
     _strupr( driveSpec );
 #elif defined RAD_VITA
     strcpy(driveSpec, "UX0:");
+#elif defined RAD_ANDROID
+    strcpy(driveSpec, "/");
 #else
     strcpy(driveSpec, "/");
 #endif // RAD_WIN32

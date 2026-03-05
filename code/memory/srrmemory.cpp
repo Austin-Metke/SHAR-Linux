@@ -15,7 +15,7 @@
 #ifdef RAD_PS2
 #include <malloc.h>
 #endif
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
 #include <cstdlib>
 #endif
 
@@ -92,6 +92,12 @@ bool gMemorySystemInitialized = false;
 // so we fall back to malloc for pre-main allocations.
 static bool g_MainStarted = false;
 void radLinuxSetMainStarted() { g_MainStarted = true; }
+#endif
+
+#ifdef RAD_ANDROID
+// Same pre-main malloc fallback needed on Android.
+static bool g_MainStarted = false;
+void radAndroidSetMainStarted() { g_MainStarted = true; }
 #endif
 
 #ifdef REROUTE_ALL_HEAP_ALLOCATIONS
@@ -196,7 +202,7 @@ throw( std::bad_alloc )
 #endif
 #endif
 {
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
     if( !g_MainStarted && !gMemorySystemInitialized )
     {
         return malloc( size );
@@ -248,7 +254,7 @@ throw()
 #endif
 #endif
 {
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
     if( !g_MainStarted && !gMemorySystemInitialized )
     {
         free( pMemory );
@@ -277,7 +283,7 @@ throw( std::bad_alloc )
 #endif
 #endif
 {
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
     if( !g_MainStarted && !gMemorySystemInitialized )
     {
         return malloc( size );
@@ -328,7 +334,7 @@ throw()
 #endif
 #endif
 {
-#ifdef RAD_LINUX
+#if defined(RAD_LINUX) || defined(RAD_ANDROID)
     if( !g_MainStarted && !gMemorySystemInitialized )
     {
         free( pMemory );

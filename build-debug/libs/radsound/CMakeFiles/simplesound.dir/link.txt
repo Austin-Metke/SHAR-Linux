@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/simplesound.dir/sample/simplesound/src/main.cpp.o -o simplesound  libradsound.a /usr/lib/x86_64-linux-gnu/libopenal.so ../radcore/libradcore.a /usr/lib/x86_64-linux-gnu/libSDL2.so /usr/lib/x86_64-linux-gnu/libSDL2main.a 

@@ -36,12 +36,16 @@ if(VITA)
 	set(VITA_VERSION ${SRR2_VERSION})
 endif()
 
+if(ANDROID)
+	add_definitions(-DRAD_ANDROID)
+endif()
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 endif()
 
-if(NOT VITA)
+if(NOT VITA AND NOT ANDROID)
 	find_package(SDL3)
 endif()
 if(SDL3_FOUND)
@@ -58,17 +62,19 @@ find_package(Threads REQUIRED)
 find_package(OpenAL REQUIRED)
 
 # On native Linux, find system OpenGL
-if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+if(UNIX AND NOT VITA AND NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	find_package(OpenGL REQUIRED)
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	add_compile_options(-fvisibility=hidden)
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		add_compile_options(
-			-Werror
-			-ggdb
-		)
+		if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+			add_compile_options(
+				-Werror
+				-ggdb
+			)
+		endif()
 	endif()
 	if(VITA)
 		add_compile_options(
@@ -91,7 +97,7 @@ add_definitions(
 )
 
 # Linux-specific defines
-if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+if(UNIX AND NOT VITA AND NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
 	add_definitions(-DRAD_LINUX)
 endif()
 
@@ -108,13 +114,27 @@ if(SRR2_USE_BINK)
 	add_definitions(-DRAD_MOVIEPLAYER_USE_BINK)
 else()
 	find_package(PkgConfig REQUIRED)
-	pkg_check_modules(FFmpeg REQUIRED IMPORTED_TARGET
-			libavformat
-			libavcodec
-			libavutil
-			libswresample
-			libswscale
-	)
+	if(ANDROID)
+		pkg_check_modules(FFmpeg IMPORTED_TARGET
+				libavformat
+				libavcodec
+				libavutil
+				libswresemble
+				libswscale
+		)
+		if(NOT FFmpeg_FOUND)
+			message(WARNING "FFmpeg not found for Android. Video playback will be unavailable.")
+			add_definitions(-DRAD_NO_MOVIES)
+		endif()
+	else()
+		pkg_check_modules(FFmpeg REQUIRED IMPORTED_TARGET
+				libavformat
+				libavcodec
+				libavutil
+				libswresample
+				libswscale
+		)
+	endif()
 endif()
 if(SRR2_MICROPROFILE)
 	add_definitions(-DMICROPROFILE_ENABLED)

@@ -100,7 +100,7 @@ target_link_libraries(radmovie
 )
 if(SRR2_USE_BINK)
 	target_link_libraries(radmovie bink)
-else()
+elseif(FFmpeg_FOUND)
 	target_link_libraries(radmovie PkgConfig::FFmpeg)
 endif()
 if(SRR2_BUILD_TESTS)
