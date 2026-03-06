@@ -105,7 +105,7 @@ elseif(FFmpeg_FOUND)
 endif()
 if(SRR2_BUILD_TESTS)
 	add_executable(simplemovie "sample/src/main.cpp" "sample/src/util.cpp"
-		"${CMAKE_SOURCE_DIR}/code/main/tuidunaligned.cpp")
+		"${CMAKE_CURRENT_SOURCE_DIR}/../../code/main/tuidunaligned.cpp")
 	target_link_libraries(simplemovie
 		radmovie
 		${SDL_LIBRARY}

@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.radicalgames.srr2"
+    compileSdkVersion 34
+    ndkVersion "27.2.12479018"
+    ndkPath "/opt/android-ndk-r27c"
+
+    defaultConfig {
+        applicationId "com.radicalgames.srr2"
+        minSdkVersion 24
+        targetSdkVersion 34
+        versionCode 1
+        versionName "0.61"
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared",
+                          "-DSRR2_P3D_PDDI=GLES2",
+                          "-DSRR2_BUILD_TESTS=OFF"
+                abiFilters 'arm64-v8a'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'jni/CMakeLists.txt'
+            version '3.22.1+'
+        }
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+}
