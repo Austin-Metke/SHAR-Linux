@@ -187,7 +187,9 @@ target_link_libraries(pddi
 if(ANDROID)
 	target_link_libraries(pddi EGL GLESv2)
 elseif(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
-	target_link_libraries(pddi OpenGL::GL)
+	if(TARGET OpenGL::GL)
+		target_link_libraries(pddi OpenGL::GL)
+	endif()
 endif()
 
 add_library(p3d STATIC ${P3D_SOURCES})

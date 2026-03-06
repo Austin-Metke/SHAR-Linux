@@ -67,9 +67,11 @@ if(NOT OPENAL_LIBRARY)
 	find_package(OpenAL REQUIRED)
 endif()
 
-# On native Linux, find system OpenGL
+# On native Linux with desktop OpenGL backend, find system OpenGL
 if(UNIX AND NOT VITA AND NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
-	find_package(OpenGL REQUIRED)
+	if(NOT SRR2_P3D_PDDI STREQUAL "GLES2" AND NOT SRR2_P3D_PDDI STREQUAL "GLES1")
+		find_package(OpenGL REQUIRED)
+	endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -116,11 +118,12 @@ endif()
 if(SRR2_REROUTE_ALL_HEAP_ALLOCATIONS)
 	add_definitions(-DREROUTE_ALL_HEAP_ALLOCATIONS)
 endif()
+option(SRR2_NO_MOVIES "Disable video playback (no FFmpeg dependency)" OFF)
 if(SRR2_USE_BINK)
 	add_definitions(-DRAD_MOVIEPLAYER_USE_BINK)
-elseif(ANDROID)
-	if(DEFINED ENV{PKG_CONFIG_LIBDIR} OR DEFINED SRR2_ANDROID_FFMPEG)
-		find_package(PkgConfig REQUIRED)
+elseif(SRR2_NO_MOVIES OR ANDROID)
+	find_package(PkgConfig)
+	if(PkgConfig_FOUND)
 		pkg_check_modules(FFmpeg IMPORTED_TARGET
 				libavformat
 				libavcodec
@@ -130,7 +133,7 @@ elseif(ANDROID)
 		)
 	endif()
 	if(NOT FFmpeg_FOUND)
-		message(STATUS "FFmpeg not available for Android. Video playback disabled (RAD_NO_MOVIES).")
+		message(STATUS "FFmpeg not available. Video playback disabled (RAD_NO_MOVIES).")
 		add_definitions(-DRAD_NO_MOVIES)
 	endif()
 else()
