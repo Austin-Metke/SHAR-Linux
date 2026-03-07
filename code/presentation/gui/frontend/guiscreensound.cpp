@@ -30,7 +30,7 @@
 
 #include <string.h>
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <data/config/gameconfigmanager.h>
 #endif
 
@@ -206,7 +206,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenSound" );
         surroundSoundSetting->SetVisible( false );
     }
 
-  #ifndef RAD_PC // for PC don't shift the pixels... essential for the mouse cursor.
+  #if !defined(RAD_PC) && !defined(RAD_LINUX) // for PC don't shift the pixels... essential for the mouse cursor.
     // and move regular sound menu down a bit to re-center vertically
     //
     Scrooby::Group* soundMenu = pPage->GetGroup( "Menu" );
@@ -528,7 +528,7 @@ void CGuiScreenSound::InitRunning()
 //===========================================================================
 void CGuiScreenSound::InitOutro()
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     // Save the new controller mappings to the config file.
     GetGameConfigManager()->SaveConfigFile();
 #endif

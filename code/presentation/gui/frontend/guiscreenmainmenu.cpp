@@ -194,7 +194,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenMainMenu" );
     //
     Scrooby::Text* otherMainMenu = NULL;
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     m_pMenu->AddMenuItem( pPage->GetText( "MainMenu_PC" ),
                           pPage->GetText( "MainMenu_PC" ),
                           NULL,
@@ -400,7 +400,7 @@ void CGuiScreenMainMenu::HandleMessage
 {
     if( message == GUI_MSG_MENU_PROMPT_RESPONSE )
     {
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
         rAssert( param1 == PROMPT_CONFIRM_NEW_GAME );
 #endif
 
@@ -437,7 +437,7 @@ void CGuiScreenMainMenu::HandleMessage
                 }
             }
         }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         else if( param1 == PROMPT_CONFIRM_QUIT )
         {
             switch( param2 )
@@ -586,7 +586,7 @@ void CGuiScreenMainMenu::HandleMessage
 
                 break;
             }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             case GUI_MSG_CONTROLLER_BACK:
             {
                 this->OnQuitGameSelected();
@@ -679,7 +679,7 @@ void CGuiScreenMainMenu::HandleMessage
 
                         break;
                     }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
                     case MAIN_MENU_QUIT_GAME:
                     {
                         this->OnQuitGameSelected();
@@ -1254,7 +1254,7 @@ void CGuiScreenMainMenu::TurnOnGlowItems( unsigned int items )
     }
 #endif
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     for( int i = 0; i < NUM_MAIN_MENU_SELECTIONS; i++ )
     {
         bool isOn = (items & (1 << i)) > 0;
@@ -1352,7 +1352,7 @@ CGuiScreenMainMenu::OnMiniGameSelected()
     this->StartTransitionAnimation( 880, 913 );
 }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 void
 CGuiScreenMainMenu::OnQuitGameSelected()
 {

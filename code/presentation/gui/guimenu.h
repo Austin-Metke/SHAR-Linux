@@ -126,7 +126,7 @@ protected:
     void UnselectItem( int index );
 
     void ChangeSelection( int deltaItems, bool isUserInput = true );
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     void SetNewSelection( int newSelection, bool isUserInput = false );
     void OutlineSelection( bool bOutline = true );
 #endif
@@ -140,7 +140,7 @@ protected:
     int m_numItems;
 
     int m_selection;
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     bool m_bIsSelectionOutlined;
     tColour m_selectionOutlineColour;
 #endif

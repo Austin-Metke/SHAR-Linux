@@ -41,7 +41,7 @@
 
 #include <string.h>
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <input/inputmanager.h>
 #endif
 

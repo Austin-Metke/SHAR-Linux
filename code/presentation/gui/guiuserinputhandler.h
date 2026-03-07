@@ -66,7 +66,7 @@ namespace GuiInput
         AuxDown,
         AuxXAxis,
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         P1_KBD_Start,
         P1_KBD_Select,
         P1_KBD_Back,
@@ -143,7 +143,7 @@ private:
     int m_XAxisDuration;
     int m_YAxisDuration;
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     float m_RightValue;
     float m_LeftValue;
     float m_UpValue;

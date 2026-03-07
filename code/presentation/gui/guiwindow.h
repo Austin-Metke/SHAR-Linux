@@ -80,7 +80,7 @@ class CGuiWindow : public CGuiEntity
             GUI_SCREEN_ID_SOUND,
             GUI_SCREEN_ID_VIEW_MOVIES,
             GUI_SCREEN_ID_VIEW_CREDITS,
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             GUI_SCREEN_ID_DISPLAY,
 #endif
             GUI_SCREEN_ID_PLAY_MOVIE,
