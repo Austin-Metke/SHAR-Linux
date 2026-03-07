@@ -21,6 +21,8 @@
 //===========================================================================
 #ifdef RAD_PC
 #include <presentation/gui/frontend/guiscreencontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <presentation/gui/frontend/guiscreencontrollerLinux.h>
 #else
 #include <presentation/gui/frontend/guiscreencontroller.h>
 #endif
