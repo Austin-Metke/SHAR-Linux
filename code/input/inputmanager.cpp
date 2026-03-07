@@ -24,6 +24,8 @@
 #include <input/inputmanager.h>
 #ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
 #else
 #include <input/usercontroller.h>
 #endif
@@ -138,7 +140,7 @@ MEMTRACK_PUSH_GROUP( "InputManager" );
         // preallocate run time controller structure.
         mControllerArray[ i ].Create(i);
     }
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     mxIControllerSystem2->RegisterConnectionChangeCallback( this );
 #endif
     rDebugString( "Just created User controller system\n" );
@@ -407,6 +409,9 @@ m_isProScanButtonsPressed( false )
 #ifdef RAD_PC
     m_pFEMouse = new FEMouse;
 #endif
+#ifdef RAD_LINUX
+    // No FEMouse on Linux
+#endif
 #ifdef RAD_PS2
     mLastMultitapStatus[0] = mLastMultitapStatus[1] = 0;
     mCurMultitapStatus[0] = mCurMultitapStatus[1] = 0;
@@ -419,7 +424,7 @@ InputManager::~InputManager()
 {
     ReleaseAllControllers();
 
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     mxIControllerSystem2->UnRegisterConnectionChangeCallback( this );
 #endif
     ::radControllerTerminate();
@@ -434,10 +439,12 @@ void InputManager::EnumerateControllers( void )
     // on the console the controller device and all the mappables are
     // preallocated.  So we don't have to create new associations.
     //
-#ifndef RAD_PC
+#if defined(RAD_PC)
+    ref< IRadController > radController[ NUM_CONTROLLERTYPES ];
+#elif defined(RAD_LINUX)
     ref< IRadController > xIC2;
 #else
-    ref< IRadController > radController[ NUM_CONTROLLERTYPES ];
+    ref< IRadController > xIC2;
 #endif
 
     ReleaseAllControllers( );
@@ -455,7 +462,9 @@ void InputManager::EnumerateControllers( void )
 
             char szLocation[ 256 ];
 
-#if defined(RAD_CONSOLE) && !defined( RAD_GC )
+#if defined(RAD_LINUX)
+            sprintf( szLocation, "Port%d\\Slot%d", port, slot );
+#elif defined(RAD_CONSOLE) && !defined( RAD_GC )
             sprintf( szLocation, "Port%d\\Slot%d", port, slot );
 #elif defined(RAD_PC)
             char szJoystickLoc[ 256 ];
@@ -470,7 +479,9 @@ void InputManager::EnumerateControllers( void )
             sprintf( szLocation, "Channel%d", i );
 #endif
 
-#ifndef RAD_PC
+#if defined(RAD_LINUX)
+            xIC2 = mxIControllerSystem2->GetControllerAtLocation( szLocation );
+#elif !defined(RAD_PC)
             xIC2 = mxIControllerSystem2->GetControllerAtLocation( szLocation );
 #else
             radController[KEYBOARD] = mxIControllerSystem2->GetControllerAtLocation( szLocation );
@@ -504,6 +515,29 @@ void InputManager::EnumerateControllers( void )
                 {
                     radController[i] = NULL;
                 }
+            }
+#elif defined(RAD_LINUX)
+            if ( xIC2 == NULL || !xIC2->IsConnected( ) )
+            {
+                if( i == 0 )
+                {
+                    // On Linux, always connect controller 0 (keyboard is always available)
+                    controller->Initialize( (IRadController*)NULL );
+                    controller->NotifyConnect();
+                    controller->LoadControllerMappings();
+                }
+                else
+                {
+                    controller->NotifyDisconnect();
+                }
+            }
+            else
+            {
+                controller->Initialize( xIC2 );
+                controller->NotifyConnect();
+                controller->LoadControllerMappings();
+                controller->SetRumble( IsRumbleEnabled() );
+                xIC2 = NULL;
             }
 #else
             if ( xIC2 == NULL || !xIC2->IsConnected( ) )

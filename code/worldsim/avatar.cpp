@@ -634,7 +634,7 @@ void Avatar::SetCameraTargetToCharacter( bool cut )
     GetSuperCamManager()->GetSCC( mPlayerId )->SetTarget( mpCharacter->GetTarget( ) );
     // Select the follow cam.
     //
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     GetSuperCamManager()->GetSCC( mPlayerId )->SelectSuperCam( SuperCam::ON_FOOT_CAM, cut ? SuperCamCentral::CUT : 0 );
 #else
     GetSuperCamManager()->GetSCC( mPlayerId )->SelectSuperCam( SuperCam::WALKER_CAM, cut ? SuperCamCentral::CUT : 0 );

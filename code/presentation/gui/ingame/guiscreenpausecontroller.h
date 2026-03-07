@@ -19,7 +19,7 @@
 //===========================================================================
 // Nested Includes
 //===========================================================================
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <presentation/gui/frontend/guiscreencontrollerWin32.h>
 #else
 #include <presentation/gui/frontend/guiscreencontroller.h>

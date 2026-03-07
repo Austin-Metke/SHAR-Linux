@@ -50,7 +50,7 @@ namespace ActionButton
         "DPadDown",
         "DPadLeft",
         "DPadRight"
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         ,"GetOutCar"
         ,"MouseLookLeft"
         ,"MouseLookRight"

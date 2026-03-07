@@ -286,7 +286,7 @@ void CGuiManagerBootUp::HandleMessage
 
             m_state = GUI_FE_SHUTTING_DOWN;
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             GetBootupContext()->LoadConfig();
 #endif
 

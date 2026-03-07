@@ -182,7 +182,7 @@ private:
     bool m_unloadMemcardInfoWhenLoaded : 1;
     bool m_promptSaveBeforeQuit : 1;
     bool m_quitAfterSave : 1;
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     bool m_quitToSystemAfterSave : 1;
 #endif
     bool m_isControllerReconnected : 1;

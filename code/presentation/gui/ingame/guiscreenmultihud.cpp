@@ -311,7 +311,7 @@ void CGuiScreenMultiHud::HandleMessage
             break;
         }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         case GUI_MSG_CONTROLLER_BACK:
         {
             // This is our start button for PC.

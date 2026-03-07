@@ -32,7 +32,7 @@
 #include <presentation/gui/ingame/guiscreenmissionselect.h>
 #include <presentation/gui/ingame/guiscreenhudmap.h>
 #include <presentation/gui/ingame/guiscreenpauseoptions.h>
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <presentation/gui/ingame/guiscreenpausedisplay.h>
 #endif
 #include <presentation/gui/ingame/guiscreenpausecontroller.h>
@@ -149,7 +149,7 @@ CGuiManagerInGame::CGuiManagerInGame
     m_unloadMemcardInfoWhenLoaded( false ),
     m_promptSaveBeforeQuit( true ),
     m_quitAfterSave( false ),
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     m_quitToSystemAfterSave(false),
 #endif
     m_isControllerReconnected( false ),
@@ -376,7 +376,7 @@ MEMTRACK_PUSH_GROUP( "CGUIManagerInGame" );
         pScreen = new CGuiScreenPauseOptions( pScroobyScreen, this );
         this->AddWindow( CGuiWindow::GUI_SCREEN_ID_OPTIONS, pScreen );
     }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     pScroobyScreen = m_pScroobyProject->GetScreen( "PauseDisplay" );
     if( pScroobyScreen != NULL )
     {
@@ -385,7 +385,7 @@ MEMTRACK_PUSH_GROUP( "CGUIManagerInGame" );
     }
 #endif
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     pScroobyScreen = m_pScroobyProject->GetScreen( "PauseController" );
     if( pScroobyScreen != NULL )
     {
@@ -646,7 +646,7 @@ void CGuiManagerInGame::HandleMessage
 
             break;
         }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         case GUI_MSG_QUIT_TO_SYSTEM:
             {
                 if( GUI_FE_SCREEN_RUNNING == m_state )
@@ -699,7 +699,7 @@ void CGuiManagerInGame::HandleMessage
 #endif
         case GUI_MSG_MENU_PROMPT_RESPONSE:
         {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             if( param1 == PROMPT_CONFIRM_SAVE_BEFORE_QUITTOSYSTEM )
             {
                 if( param2 == CGuiMenuPrompt::RESPONSE_YES )
@@ -859,7 +859,7 @@ void CGuiManagerInGame::HandleMessage
             {
                 this->HandleMessage( GUI_MSG_QUIT_INGAME );
             }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             else if( m_quitToSystemAfterSave )
             {
                 this->HandleMessage( GUI_MSG_QUIT_TO_SYSTEM );

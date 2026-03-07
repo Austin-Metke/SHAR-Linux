@@ -65,7 +65,7 @@ public:
 		MSG_ID_DELETING_XBOX,
         MSG_ID_LOADING_MISSION,
         MSG_ID_PROGRESSIVE_SCAN_TEST,
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         MSG_ID_LOADING_GAME_PC,
         MSG_ID_SAVING_GAME_PC,
         MSG_ID_AUTO_LOADING_GAME_PC,

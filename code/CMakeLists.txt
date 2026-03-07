@@ -89,6 +89,8 @@ set(SRR2_SOURCES
 	"contexts/supersprint/loadingsupersprintcontext.cpp"
 	"contexts/supersprint/supersprintcontext.cpp"
 	"contexts/supersprint/supersprintfecontext.cpp"
+	"data/config/configstring.cpp"
+	"data/config/gameconfigmanager.cpp"
 	"data/gamedatamanager.cpp"
 	"data/memcard/memorycardmanager.cpp"
 	"data/PersistentWorldManager.cpp"
@@ -105,8 +107,10 @@ set(SRR2_SOURCES
 	#"input/FEMouse.cpp"
 	#"input/forceeffect.cpp"
 	#"input/Gamepad.cpp"
+	"input/GamepadSDL.cpp"
 	"input/inputmanager.cpp"
 	#"input/Keyboard.cpp"
+	"input/KeyboardSDL.cpp"
 	"input/mappable.cpp"
 	"input/mapper.cpp"
 	#"input/Mouse.cpp"
@@ -115,9 +119,8 @@ set(SRR2_SOURCES
 	"input/rumbleeffect.cpp"
 	"input/rumblewin32.cpp"
 	#"input/steeringspring.cpp"
-	"input/usercontroller.cpp"
 	#"input/usercontrollerWin32.cpp"
-	#"input/virtualinputs.cpp"
+	"input/virtualinputs.cpp"
 	#"input/wheelrumble.cpp"
 	"interiors/interiormanager.cpp"
 	"loading/cameradataloader.cpp"
@@ -530,6 +533,19 @@ set(SRR2_SOURCES
 	"worldsim/worldobject.cpp"
 	"worldsim/worldphysicsmanager.cpp"
 )
+# Linux uses the new SDL-based user controller; other platforms use the console one
+if(UNIX AND NOT VITA AND NOT CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+	list(APPEND SRR2_SOURCES
+		"input/usercontrollerLinux.cpp"
+		"input/KeyboardSDL.cpp"
+		"input/GamepadSDL.cpp"
+	)
+else()
+	list(APPEND SRR2_SOURCES
+		"input/usercontroller.cpp"
+	)
+endif()
+
 if(SRR2_REGION STREQUAL "PAL")
 	list(APPEND SRR2_SOURCES
 		"sound/soundrenderer/scripts/french.cpp"

@@ -69,7 +69,7 @@ CGuiScreenLoadSave::CGuiScreenLoadSave( Scrooby::Screen* pScreen )
     m_operation( SCREEN_OP_IDLE )
 {
     rAssert( pScreen != NULL );
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     Scrooby::Page* pPage = pScreen->GetPage( "GameSlots" );
     if( pPage != NULL )
     {

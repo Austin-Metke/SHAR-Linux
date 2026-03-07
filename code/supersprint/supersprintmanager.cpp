@@ -1456,7 +1456,7 @@ void SuperSprintManager::LoadControllerMappings( unsigned int controllerId )
         Map( "Y", ShowPositions, 0, controllerId );
 #endif
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         ClearMap(0);
         Map( "Pause", Start, 0, controllerId );
         Map( "Attack", Select, 0, controllerId );

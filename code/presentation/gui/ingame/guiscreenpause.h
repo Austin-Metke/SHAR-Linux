@@ -54,7 +54,7 @@ protected:
     void HandleResumeGame( unsigned int param1 = 0,
                            unsigned int param2 = 0 );
     void HandleQuitGame();
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     void HandleQuitToSystem();
 #endif
     #ifdef DEBUGWATCH
