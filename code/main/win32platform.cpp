@@ -108,7 +108,7 @@
 #include <loading/roaddatasegmentloader.h>
 #include <atc/atcloader.h>
 #include <data/gamedatamanager.h>
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <data/config/gameconfigmanager.h>
 #endif
 #include <debug/debuginfo.h>
@@ -527,7 +527,7 @@ void Win32Platform::InitializePlatform()
 {
     HeapMgr()->PushHeap (GMA_PERSISTENT);
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     //
     // Register with the game config manager
     //
@@ -875,7 +875,7 @@ bool Win32Platform::OnDriveError( radFileError error, const char* pDriveName, vo
             strncpy( adjustedName, &fileName[adjustedIndex], ( strlen( fileName ) - lastIndex ) );
             adjustedName[ strlen( fileName ) - lastIndex ] = '\0';
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             if( strcmp( fileName, GameConfigManager::ConfigFilename ) == 0 )
             {
                 return false;
@@ -1040,7 +1040,7 @@ bool Win32Platform::IsFullscreen() const
 //
 // Notes:
 //=============================================================================
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 const char* Win32Platform::GetConfigName() const
 {
     return "System";
@@ -1077,7 +1077,7 @@ int Win32Platform::GetNumProperties() const
 
 void Win32Platform::LoadDefaults()
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 
 #ifdef RAD_DEBUG
     SetResolution( StartingResolution, StartingBPP, !CommandLineOptions::Get( CLO_WINDOW_MODE ) );

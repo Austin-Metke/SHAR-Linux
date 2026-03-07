@@ -15,6 +15,10 @@
 #include <input/mapper.h>
 #include <input/rumbleeffect.h>
 #include <input/RealController.h>
+#include <input/steeringspring.h>
+#include <input/basedamper.h>
+#include <input/constanteffect.h>
+#include <input/wheelrumble.h>
 
 class Mappable;
 class Mapper;
@@ -92,6 +96,12 @@ public:
 
     bool IsWheel() const { return false; }
 
+    SteeringSpring* GetSpring() { return NULL; }
+    BaseDamper* GetDamper() { return NULL; }
+    ConstantEffect* GetConstantEffect() { return NULL; }
+    WheelRumble* GetWheelRumble() { return NULL; }
+    WheelRumble* GetHeavyWheelRumble() { return NULL; }
+
     virtual const char* GetConfigName() const;
     virtual int GetNumProperties() const;
     virtual void LoadDefaults();
@@ -103,6 +113,7 @@ public:
 
     void SetTutorialDisabled( bool bDisabled ) { m_bTutorialDisabled = bDisabled; }
     bool IsTutorialDisabled() const { return m_bTutorialDisabled; }
+    bool IsMouseLookOn() const { return false; }
 
 protected:
     void RegisterInputPoints();

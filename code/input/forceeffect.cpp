@@ -76,7 +76,9 @@ ForceEffect::~ForceEffect()
 {
     if ( mOutputPoint )
     {
+#ifdef WIN32
         mOutputPoint->Stop();
+#endif
         mOutputPoint->Release();
         mOutputPoint = NULL;
     }
@@ -107,7 +109,9 @@ void ForceEffect::Init( IRadControllerOutputPoint* outputPoint )
 
     OnInit();
 
+#ifdef WIN32
     mOutputPoint->UpdateEffect( &mForceEffect );
+#endif
 }
 
 //=============================================================================
@@ -122,14 +126,15 @@ void ForceEffect::Init( IRadControllerOutputPoint* outputPoint )
 //=============================================================================
 void ForceEffect::Start()
 {
-    //Clear out current effects.
     OnInit();
     mEffectDirty = true;
 
+#ifdef WIN32
     if ( mOutputPoint )
     {
         mOutputPoint->Start();
     }
+#endif
 }
 
 //=============================================================================
@@ -144,10 +149,12 @@ void ForceEffect::Start()
 //=============================================================================
 void ForceEffect::Stop()
 {
+#ifdef WIN32
     if ( mOutputPoint )
     {
         mOutputPoint->Stop();
     }
+#endif
 }
 
 //=============================================================================
@@ -168,7 +175,9 @@ void ForceEffect::Update()
 {
     if ( mEffectDirty && mOutputPoint )
     {
+#ifdef WIN32
         mOutputPoint->UpdateEffect( &mForceEffect );
+#endif
         mEffectDirty = false;
     }
 }
