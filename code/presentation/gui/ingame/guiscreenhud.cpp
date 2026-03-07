@@ -1744,7 +1744,7 @@ CGuiScreenHud::UpdateOverlays( unsigned int elapsedTime )
                                      PULSE_PERIOD,
                                      1.0f,
                                      PULSE_AMPLITUDE );
-#if defined( RAD_WIN32 ) && !defined( RAD_PC )
+#if defined( RAD_WIN32 ) && !defined( RAD_PC ) && !defined( RAD_LINUX )
         scale *= 0.5f;
 #endif
 

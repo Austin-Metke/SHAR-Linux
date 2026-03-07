@@ -96,9 +96,13 @@
 #include <presentation/gui/ingame/guimanageringame.h>
 #include <presentation/gui/ingame/guiscreenhud.h>
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <camera/pccam.h>
+#ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
+#endif
 #include <input/Mouse.h>
 #include <input/RealController.h>
 #include <camera/supercam.h>
@@ -312,7 +316,7 @@ mbSurfing(false),
 mbAllowUnload(true),
 mbIsPlayingIdleAnim(false),
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 mPCCamFacing( 0 ),
 #endif
 
@@ -1694,7 +1698,7 @@ void Character::UpdateDesiredDirAndSpeed( const rmt::Vector& dir )
 {
     rmt::Vector direction = dir;
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     SuperCam* cam = GetSuperCamManager()->GetSCC(0)->GetActiveSuperCam();
     PCCam* pPCCam = NULL;
     if( !mIsNPC && cam->GetType() == SuperCam::PC_CAM )  
@@ -1703,7 +1707,7 @@ void Character::UpdateDesiredDirAndSpeed( const rmt::Vector& dir )
     }
 #endif
 
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     if ( direction.DotProduct( direction ) > 0.001f )
     {
         SetDesiredDir( choreo::GetWorldAngle( direction.x, direction.z ) );

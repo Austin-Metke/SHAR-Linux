@@ -97,6 +97,8 @@
 #include <input/inputmanager.h>
 #ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
 #else
 #include <input/usercontroller.h>
 #endif
@@ -4337,7 +4339,7 @@ void TeleportAction::HandleEvent( EventEnum id, void* pEventData )
         rmt::CartesianToPolar( z.x, z.z, &magWaste, &facing );        
 
         GetAvatarManager()->GetAvatarForPlayer( 0 )->GetCharacter()->RelocateAndReset( pos, facing, true );
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         GetSuperCamManager()->GetSCC( 0 )->SelectSuperCam( SuperCam::ON_FOOT_CAM, SuperCamCentral::CUT, 0 );
 #else
         GetSuperCamManager()->GetSCC( 0 )->SelectSuperCam( SuperCam::WALKER_CAM, SuperCamCentral::CUT, 0 );

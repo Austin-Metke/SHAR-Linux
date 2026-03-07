@@ -27,6 +27,8 @@
 #include <input/inputmanager.h>
 #ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
 #else
 #include <input/usercontroller.h>
 #endif
@@ -44,7 +46,7 @@
 
 inline bool AnyStickMovement(Character* character, float tol = 0.0f)
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     float mright = character->GetController()->GetValue(CharacterController::MouseLookRight);
     float mleft = character->GetController()->GetValue(CharacterController::MouseLookLeft);
     float mouselook = ( mright > mleft ) ? mright : -mleft;
@@ -52,7 +54,7 @@ inline bool AnyStickMovement(Character* character, float tol = 0.0f)
 
     return (rmt::Abs(character->GetController()->GetValue(CharacterController::LeftStickX)) > tol) ||
            (rmt::Abs(character->GetController()->GetValue(CharacterController::LeftStickY)) > tol) ||
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
            (
                GetInputManager()->GetController(0)->IsMouseLookOn() && 
                rmt::Abs(mouselook) > tol

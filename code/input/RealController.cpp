@@ -6,7 +6,13 @@
 	History:
  *****************************************************************************/
 #include <input/RealController.h>
+#ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
+#else
+#include <input/usercontroller.h>
+#endif
 #include <input/inputmanager.h>
 
 /******************************************************************************

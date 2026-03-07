@@ -158,7 +158,7 @@ void SuperCamController::LoadControllerMappings( unsigned int controllerId )
     }
     #endif
 
-    #ifdef RAD_PC
+    #if defined(RAD_PC) || defined(RAD_LINUX)
     ClearMap(0);
     Map( "CameraLeft", stickXdown, 0, controllerId );
     Map( "CameraRight", stickXup, 0, controllerId );

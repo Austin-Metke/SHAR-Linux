@@ -86,6 +86,8 @@ struct SDLKeyboardMapping
     SDL_Scancode keyNegative;
 };
 
+static bool g_KeyboardMappingsDisabled = false;
+
 static SDLKeyboardMapping g_KeyboardMappings[] =
 {
     { SDL_SCANCODE_UP,      SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
@@ -110,8 +112,16 @@ static SDLKeyboardMapping g_KeyboardMappings[] =
     { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN },
 };
 
+void radControllerSetKeyboardMappingDisabled( bool disabled )
+{
+    g_KeyboardMappingsDisabled = disabled;
+}
+
 static float GetKeyboardValueForPoint( unsigned int pointIndex, const char* pType )
 {
+    if( g_KeyboardMappingsDisabled )
+        return -1.0f;
+
 #if SDL_MAJOR_VERSION < 3
     const Uint8* keyState = SDL_GetKeyboardState( NULL );
 #else

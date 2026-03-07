@@ -930,16 +930,54 @@ bool Win32Platform::OnDriveError( radFileError error, const char* pDriveName, vo
 
 bool Win32Platform::SetResolution( Resolution res, int bpp, bool fullscreen )
 {
+#ifdef RAD_LINUX
+    // On Linux, skip the resolution support check — SDL can handle any window size
+    if( !mpContext )
+    {
+        return false;
+    }
+#else
     // Check if resolution is supported.
     if( !mpContext || !IsResolutionSupported( res, bpp ) )
     {
         return false;
     }
+#endif
 
     // Set up the new properties
     mResolution = res;
     mbpp = bpp;
+
+#ifdef RAD_LINUX
+    // Handle fullscreen state change via SDL
+    if( fullscreen != mFullscreen )
+    {
+        mFullscreen = fullscreen;
+        if( mFullscreen )
+        {
+#if SDL_MAJOR_VERSION < 3
+            SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN_DESKTOP );
+#else
+            SDL_SetWindowFullscreenMode( mWnd, NULL );
+            SDL_SetWindowFullscreen( mWnd, true );
+#endif
+        }
+        else
+        {
+#if SDL_MAJOR_VERSION < 3
+            SDL_SetWindowFullscreen( mWnd, 0 );
+#else
+            SDL_SetWindowFullscreen( mWnd, false );
+#endif
+        }
+    }
+    else
+    {
+        mFullscreen = fullscreen;
+    }
+#else
     mFullscreen = fullscreen;
+#endif
 
     // Reinitialize the d3d context.
     InitializeContext();

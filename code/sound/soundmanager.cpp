@@ -1578,7 +1578,7 @@ void SoundManager::LoadData( const GameDataByte* dataBuffer, unsigned int numByt
     SoundMode loadedSoundMode;
     float calculatedAmbienceVolume;
 
-#ifdef RAD_PC // temp
+#if defined(RAD_PC) || defined(RAD_LINUX) // temp
     return;
 #endif
 
@@ -1755,7 +1755,7 @@ void SoundManager::ResetData()
 #endif
 }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 //=============================================================================
 // SoundManager::GetConfigName
 //=============================================================================
@@ -1906,7 +1906,7 @@ void SoundManager::SaveConfig( ConfigString& config )
     sprintf( value, "%f", GetCarVolume() );
     config.WriteProperty( "car", value );
 }
-#endif // RAD_WIN32
+#endif // RAD_PC || RAD_LINUX
 
 void SoundManager::SetSoundMode( SoundMode mode )
 {
@@ -2092,7 +2092,7 @@ void SoundManager::Initialize()
     ::radFactoryRegister( "reverbSettings", (radFactoryProc*) reverbSettings::ObjCreate );
     ::radFactoryRegister( "positionalSoundSettings", (radFactoryProc*) positionalSoundSettings::ObjCreate );
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     //
     // Register with the game config manager
     //

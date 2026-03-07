@@ -52,6 +52,7 @@ static const char* szVirtualInputs[] =
     "feSelect",
     "feFunction1",
     "feFunction2",
+    "feStart",
     "feMouseLeft",
     "feMouseRight",
     "feMouseUp",
@@ -140,6 +141,7 @@ eMapType VirtualInputs::GetType( int VirtualInput )
         case InputManager::feSelect:
         case InputManager::feFunction1:
         case InputManager::feFunction2:
+        case InputManager::feStart:
         case InputManager::feMouseLeft:
         case InputManager::feMouseRight:
         case InputManager::feMouseUp:

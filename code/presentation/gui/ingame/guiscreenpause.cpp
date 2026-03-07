@@ -224,7 +224,7 @@ void CGuiScreenPause::HandleMessage
 	unsigned int param2 
 )
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     if( message == GUI_MSG_MENU_PROMPT_RESPONSE && 
         param1 == PROMPT_CONFIRM_QUIT_TO_SYSTEM )
     {
@@ -313,7 +313,7 @@ void CGuiScreenPause::HandleMessage
                 break;
             }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             case GUI_MSG_CONTROLLER_BACK:
             {
                 // This is our start button for PC.
@@ -556,7 +556,7 @@ void CGuiScreenPause::HandleQuitGame()
     m_guiManager->DisplayPrompt( PROMPT_CONFIRM_QUIT, this );
 }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 //===========================================================================
 // CGuiScreenPause::HandleQuitToSystem
 //===========================================================================

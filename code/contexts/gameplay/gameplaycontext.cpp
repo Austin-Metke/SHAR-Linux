@@ -38,7 +38,7 @@
 #include <camera/conversationcam.h>
 #include <camera/reversecam.h>
 #include <camera/snapshotcam.h>
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <camera/pccam.h>
 #endif
 
@@ -295,7 +295,7 @@ void GameplayContext::OnStart( ContextEnum previousContext )
 //            sc = new FirstPersonCam();
 //            sc->SetAspect( aspect );
 //            scc->RegisterSuperCam( sc );
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             sc = new PCCam();
             sc->SetAspect( aspect );
             scc->RegisterSuperCam( sc );

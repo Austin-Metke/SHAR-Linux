@@ -49,7 +49,7 @@ enum eMenuItem
     MENU_ITEM_ABORT_MISSION,
     MENU_ITEM_OPTIONS,
     MENU_ITEM_QUIT_GAME,
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     MENU_ITEM_EXIT_GAME,
 #endif
 
@@ -64,7 +64,7 @@ static const char* MENU_ITEMS[] =
     "AbortMission",
     "Options",
     "QuitGame"
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     ,"ExitToSystem"
 #endif
 };
@@ -112,7 +112,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenPauseMission" );
     for( int i = 0; i < NUM_MENU_ITEMS; i++ )
     {
         pText = menu->GetText( MENU_ITEMS[ i ] );
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         rAssert( pText || i == MENU_ITEM_EXIT_GAME );
         if( !pText )
             continue;
@@ -123,7 +123,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenPauseMission" );
         m_pMenu->AddMenuItem( pText );
     }
 
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     pText = menu->GetText( "ExitToSystem" );
     if( pText )
         pText->SetVisible( false );
@@ -282,7 +282,7 @@ void CGuiScreenPauseMission::HandleMessage
 
                         break;
                     }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
                     case MENU_ITEM_EXIT_GAME:
                     {
                         this->HandleQuitToSystem();

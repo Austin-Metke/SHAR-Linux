@@ -116,7 +116,7 @@ const ControlMap FMV_CONTROL_MAP[] =
     #endif
 #endif // RAD_XBOX
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     { "feStart",         FMVInput::Skip },
     { "feBack",          FMVInput::Skip },
     { "feKeyboardBack",  FMVInput::Skip },

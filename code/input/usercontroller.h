@@ -1,6 +1,11 @@
 #ifndef USERCONTROLLER_HPP
 #define USERCONTROLLER_HPP
 
+// On Linux, the UserController is defined in usercontrollerLinux.h
+#ifdef RAD_LINUX
+#include <input/usercontrollerLinux.h>
+#else
+
 #include <input/controller.h>
 #include <input/button.h>
 #include <input/rumbleeffect.h>
@@ -135,5 +140,7 @@ protected:
     RumbleEffect mRumbleEffect;    
 };
 
-#endif
+#endif // !RAD_LINUX
+
+#endif // USERCONTROLLER_HPP
 

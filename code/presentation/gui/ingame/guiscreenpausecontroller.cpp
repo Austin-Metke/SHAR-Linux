@@ -30,12 +30,14 @@
 #include <Layer.h>
 #include <Page.h>
 #include <Sprite.h>
+#include <Group.h>
 
 //===========================================================================
 // Global Data, Local Data, Local Classes
 //===========================================================================
 
 const float CONTROLLER_IMAGE_CORRECTION_SCALE = 2.0f;
+
 
 //===========================================================================
 // Public Member Functions
@@ -60,7 +62,7 @@ CGuiScreenPauseController::CGuiScreenPauseController
 )
 :   CGuiScreenController( pScreen, pParent )
 {
-#ifndef RAD_WIN32
+#if !defined(RAD_WIN32) && !defined(RAD_LINUX)
     rAssert( pScreen != NULL );
     Scrooby::Page* pPage = pScreen->GetPage( "ControllerImageS" );
     rAssert( pPage != NULL );
@@ -73,6 +75,7 @@ CGuiScreenPauseController::CGuiScreenPauseController
         controllerImage->ScaleAboutCenter( CONTROLLER_IMAGE_CORRECTION_SCALE );
     }
 #endif
+
 }
 
 
