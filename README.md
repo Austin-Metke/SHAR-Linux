@@ -36,6 +36,24 @@ cmake --build build-linux -j$(nproc)
 
 The native Linux binary is placed at `build-linux/code/SRR2`. Keep the executable next to your PC game assets (the working directory is used to find the data files).
 
+# Building for AARCH64 (ARM64)
+
+An AARCH64 build can be produced using Docker to provide a consistent ARM64 environment.
+
+Dependencies are the same as the Linux build. The included `Dockerfile.aarch64` sets up an ARM64 Ubuntu 22.04 container with all required packages.
+
+Build steps:
+
+```
+docker build -t shar-aarch64 -f Dockerfile.aarch64 .
+docker run --rm -v "$(pwd)":/src shar-aarch64 bash -c \
+    "mkdir -p build-aarch64 && cmake -S . -B build-aarch64 -DCMAKE_BUILD_TYPE=Release && cmake --build build-aarch64 -j$(nproc)"
+```
+
+The ARM64 binary is placed at `build-aarch64/code/SRR2`.
+
+If you are already on an AARCH64 system you can build natively using the same steps as the standard Linux build, substituting `build-aarch64` for `build-linux`.
+
 # Multi-Language support
 
 The PAL version supports multiple languages and will use the language that matches the system language of your console. If your console is set to a language that is not supported a menu will be shown giving you the option to choose between the supported languages.

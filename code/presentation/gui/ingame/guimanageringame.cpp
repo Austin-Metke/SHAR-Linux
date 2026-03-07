@@ -32,7 +32,7 @@
 #include <presentation/gui/ingame/guiscreenmissionselect.h>
 #include <presentation/gui/ingame/guiscreenhudmap.h>
 #include <presentation/gui/ingame/guiscreenpauseoptions.h>
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <presentation/gui/ingame/guiscreenpausedisplay.h>
 #endif
 #include <presentation/gui/ingame/guiscreenpausecontroller.h>
@@ -376,7 +376,7 @@ MEMTRACK_PUSH_GROUP( "CGUIManagerInGame" );
         pScreen = new CGuiScreenPauseOptions( pScroobyScreen, this );
         this->AddWindow( CGuiWindow::GUI_SCREEN_ID_OPTIONS, pScreen );
     }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     pScroobyScreen = m_pScroobyProject->GetScreen( "PauseDisplay" );
     if( pScroobyScreen != NULL )
     {

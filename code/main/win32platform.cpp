@@ -108,7 +108,7 @@
 #include <loading/roaddatasegmentloader.h>
 #include <atc/atcloader.h>
 #include <data/gamedatamanager.h>
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <data/config/gameconfigmanager.h>
 #endif
 #include <debug/debuginfo.h>
@@ -160,7 +160,11 @@ unsigned char gFont[] =
 //
 // Define the starting resolution.
 //
+#ifdef RAD_LINUX
+static const Win32Platform::Resolution StartingResolution = Win32Platform::Res_1920x1080;
+#else
 static const Win32Platform::Resolution StartingResolution = Win32Platform::Res_800x600;
+#endif
 static const int StartingBPP = 32;
 
 // This specifies the PDDI DLL to use.
@@ -527,16 +531,12 @@ void Win32Platform::InitializePlatform()
 {
     HeapMgr()->PushHeap (GMA_PERSISTENT);
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     //
     // Register with the game config manager
     //
     GetGameConfigManager()->RegisterConfig(this);
     GetGameConfigManager()->LoadConfigFile();
-#endif
-
-#ifdef RAD_LINUX
-    mFullscreen = true;
 #endif
 
     //
@@ -875,7 +875,7 @@ bool Win32Platform::OnDriveError( radFileError error, const char* pDriveName, vo
             strncpy( adjustedName, &fileName[adjustedIndex], ( strlen( fileName ) - lastIndex ) );
             adjustedName[ strlen( fileName ) - lastIndex ] = '\0';
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             if( strcmp( fileName, GameConfigManager::ConfigFilename ) == 0 )
             {
                 return false;
@@ -1040,7 +1040,7 @@ bool Win32Platform::IsFullscreen() const
 //
 // Notes:
 //=============================================================================
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 const char* Win32Platform::GetConfigName() const
 {
     return "System";
@@ -1077,18 +1077,24 @@ int Win32Platform::GetNumProperties() const
 
 void Win32Platform::LoadDefaults()
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 
 #ifdef RAD_DEBUG
-    SetResolution( StartingResolution, StartingBPP, !CommandLineOptions::Get( CLO_WINDOW_MODE ) );
+    bool wantFullscreen = !CommandLineOptions::Get( CLO_WINDOW_MODE );
 #else
-    SetResolution( StartingResolution, StartingBPP, true );
+    bool wantFullscreen = true;
 #endif
 
 #else
-    SetResolution( StartingResolution, StartingBPP, false );
+    bool wantFullscreen = false;
 #endif
-    
+
+    // Set member variables directly as fallback since SetResolution
+    // may return early if mpContext is not yet initialized.
+    mResolution = StartingResolution;
+    mbpp = StartingBPP;
+    mFullscreen = wantFullscreen;
+    SetResolution( StartingResolution, StartingBPP, wantFullscreen );
 
     GetRenderFlow()->SetGamma( 1.0f );
 }
@@ -1148,6 +1154,28 @@ void Win32Platform::LoadConfig( ConfigString& config )
             {
                 mResolution = Res_1600x1200;
             }
+#ifdef RAD_LINUX
+            else if( strcmp( value, "1280x720" ) == 0 )
+            {
+                mResolution = Res_1280x720;
+            }
+            else if( strcmp( value, "1366x768" ) == 0 )
+            {
+                mResolution = Res_1366x768;
+            }
+            else if( strcmp( value, "1920x1080" ) == 0 )
+            {
+                mResolution = Res_1920x1080;
+            }
+            else if( strcmp( value, "2560x1440" ) == 0 )
+            {
+                mResolution = Res_2560x1440;
+            }
+            else if( strcmp( value, "3840x2160" ) == 0 )
+            {
+                mResolution = Res_3840x2160;
+            }
+#endif
         }
         else if( _stricmp( property, "bpp" ) == 0 )
         {
@@ -1227,6 +1255,33 @@ void Win32Platform::SaveConfig( ConfigString& config )
             res = "1600x1200";
             break;
         }
+#ifdef RAD_LINUX
+        case Res_1280x720:
+        {
+            res = "1280x720";
+            break;
+        }
+        case Res_1366x768:
+        {
+            res = "1366x768";
+            break;
+        }
+        case Res_1920x1080:
+        {
+            res = "1920x1080";
+            break;
+        }
+        case Res_2560x1440:
+        {
+            res = "2560x1440";
+            break;
+        }
+        case Res_3840x2160:
+        {
+            res = "3840x2160";
+            break;
+        }
+#endif
         default:
         {
             rAssert( false );
@@ -1758,6 +1813,38 @@ void Win32Platform::TranslateResolution( Resolution res, int&x, int&y )
             y = 1200;
             break;
         }
+#ifdef RAD_LINUX
+        case Res_1280x720:
+        {
+            x = 1280;
+            y = 720;
+            break;
+        }
+        case Res_1366x768:
+        {
+            x = 1366;
+            y = 768;
+            break;
+        }
+        case Res_1920x1080:
+        {
+            x = 1920;
+            y = 1080;
+            break;
+        }
+        case Res_2560x1440:
+        {
+            x = 2560;
+            y = 1440;
+            break;
+        }
+        case Res_3840x2160:
+        {
+            x = 3840;
+            y = 2160;
+            break;
+        }
+#endif
         default:
         {
             rAssert( false );

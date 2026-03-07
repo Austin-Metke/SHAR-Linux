@@ -33,7 +33,7 @@
 
 enum ePauseMenuItem
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     MENU_ITEM_DISPLAY,
 #endif
     MENU_ITEM_CONTROLLER,
@@ -47,7 +47,7 @@ enum ePauseMenuItem
 
 static const char* PAUSE_MENU_ITEMS[] =
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     "Display",
 #endif
     "Controller",
@@ -118,7 +118,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenPauseOptions" );
                               pRArrow );
     }
 
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     Scrooby::Text* pText = menu->GetText( "Display" );
     if( pText )
         pText->SetVisible( false );
@@ -131,7 +131,7 @@ MEMTRACK_PUSH_GROUP( "CGUIScreenPauseOptions" );
 
     // TC: [TEMP] disable controller screen for now to free up some memory for HUD map
     //
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     m_pMenu->SetMenuItemEnabled( MENU_ITEM_CONTROLLER, false, true );
 #endif
 
@@ -221,7 +221,7 @@ void CGuiScreenPauseOptions::HandleMessage
                 {
                     m_pParent->HandleMessage( GUI_MSG_GOTO_SCREEN, GUI_SCREEN_ID_SETTINGS );
                 }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
                 else if( param1 == MENU_ITEM_DISPLAY )
                 {
                     m_pParent->HandleMessage( GUI_MSG_GOTO_SCREEN, GUI_SCREEN_ID_DISPLAY );

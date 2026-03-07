@@ -803,9 +803,15 @@ pglPrimBuffer::~pglPrimBuffer()
     context->ADD_STAT(PDDI_STAT_BUFFERED_COUNT, -1);
     context->ADD_STAT(PDDI_STAT_BUFFERED_ALLOC, -mem / 1024.0f);
 
-    GLuint buffers[] = { vertexBuffer, indexBuffer };
-    glDeleteBuffers(2, buffers);
-    glDeleteVertexArraysOES(1, &vertexArray);
+    // Only delete GL objects if we have a current GL context.
+    // The destructor may be called from the loader thread which has no
+    // GL context, causing a crash in libGLdispatch.
+    if( SDL_GL_GetCurrentContext() != NULL )
+    {
+        GLuint buffers[] = { vertexBuffer, indexBuffer };
+        glDeleteBuffers(2, buffers);
+        glDeleteVertexArraysOES(1, &vertexArray);
+    }
 }
 
 pddiPrimBufferStream* pglPrimBuffer::Lock()

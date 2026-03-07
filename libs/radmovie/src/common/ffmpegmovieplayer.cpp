@@ -38,6 +38,7 @@ extern "C"
     #include <libavformat/avformat.h>
     #include <libswscale/swscale.h>
     #include <libswresample/swresample.h>
+    #include <libavutil/version.h>
 }
 
 //=============================================================================
@@ -201,7 +202,11 @@ void radMoviePlayer::Load( const char * pVideoFileName, unsigned int audioTrackI
     AV_CHK( avformat_open_input( &m_pFormatCtx, pVideoFileName, NULL, NULL ) );
     AV_CHK( avformat_find_stream_info( m_pFormatCtx, NULL ) );
 
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(59, 0, 0)
     const AVCodec* pVideoCodec = NULL;
+#else
+    AVCodec* pVideoCodec = NULL;
+#endif
     m_VideoTrackIndex = av_find_best_stream( m_pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &pVideoCodec, 0 );
     AVCodecParameters* pVideoParams = m_pFormatCtx->streams[m_VideoTrackIndex]->codecpar;
     m_pVideoCtx = avcodec_alloc_context3( pVideoCodec );
@@ -222,13 +227,18 @@ void radMoviePlayer::Load( const char * pVideoFileName, unsigned int audioTrackI
 
     if( audioTrackIndex != radMovie_NoAudioTrack )
     {
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(59, 0, 0)
         const AVCodec* pAudioCodec = NULL;
+#else
+        AVCodec* pAudioCodec = NULL;
+#endif
         m_AudioTrackIndex = av_find_best_stream( m_pFormatCtx, AVMEDIA_TYPE_AUDIO, audioTrackIndex + 1, -1, &pAudioCodec, 0 );
         AVCodecParameters* pAudioParams = m_pFormatCtx->streams[m_AudioTrackIndex]->codecpar;
         m_pAudioCtx = avcodec_alloc_context3( pAudioCodec );
         AV_CHK( avcodec_parameters_to_context( m_pAudioCtx, pAudioParams ) );
         AV_CHK( avcodec_open2( m_pAudioCtx, pAudioCodec, NULL ) );
 
+#if LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 7, 0)
         AVChannelLayout layout = { AV_CHANNEL_ORDER_NATIVE, 2, AV_CH_LAYOUT_STEREO };
         AV_CHK( swr_alloc_set_opts2( &m_pSwrCtx,
             &layout,
@@ -239,6 +249,17 @@ void radMoviePlayer::Load( const char * pVideoFileName, unsigned int audioTrackI
             pAudioParams->sample_rate,
             0,
             NULL ) );
+#else
+        m_pSwrCtx = swr_alloc_set_opts( NULL,
+            AV_CH_LAYOUT_STEREO,
+            AV_SAMPLE_FMT_S16,
+            pAudioParams->sample_rate,
+            pAudioParams->channel_layout ? pAudioParams->channel_layout : av_get_default_channel_layout(pAudioParams->channels),
+            (AVSampleFormat)pAudioParams->format,
+            pAudioParams->sample_rate,
+            0,
+            NULL );
+#endif
         swr_init( m_pSwrCtx );
     }
     else
@@ -504,7 +525,11 @@ void radMoviePlayer::Service( void )
                             {
                                 AVRational rational = m_pFormatCtx->streams[0]->time_base;
                                 m_PresentationTime = (m_pVideoFrame->pts * rational.num * 1000) / rational.den;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 2, 100)
                                 m_PresentationDuration = (m_pVideoFrame->duration * rational.num * 1000) / rational.den;
+#else
+                                m_PresentationDuration = (m_pVideoFrame->pkt_duration * rational.num * 1000) / rational.den;
+#endif
                                 m_VideoFrameState = VideoFrame_Locked;
                             }
 

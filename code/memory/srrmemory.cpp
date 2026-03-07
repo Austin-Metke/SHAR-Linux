@@ -241,12 +241,7 @@ throw( std::bad_alloc )
 // Return:      
 //
 //==============================================================================
-void operator delete(void* pMemory)
-#ifdef RAD_PS2
-#ifndef RAD_MW
-throw()
-#endif
-#endif
+void operator delete(void* pMemory) noexcept
 {
 #ifdef RAD_LINUX
     if( !g_MainStarted && !gMemorySystemInitialized )
@@ -321,12 +316,7 @@ throw( std::bad_alloc )
 // Return:      
 //
 //==============================================================================
-void operator delete[]( void* pMemory )
-#ifdef RAD_PS2
-#ifndef RAD_MW
-throw()
-#endif
-#endif
+void operator delete[]( void* pMemory ) noexcept
 {
 #ifdef RAD_LINUX
     if( !g_MainStarted && !gMemorySystemInitialized )

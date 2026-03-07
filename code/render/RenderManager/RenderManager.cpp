@@ -1733,7 +1733,8 @@ void RenderManager::InitLevel()
     //Get the clouds too!
     mClouds = p3d::find<tMultiController>("CloudController");
     rAssert( mClouds );
-     */      
+    */
+           
 }
 
 void RenderManager::SetLevelLayerLights( tLightGroup* SunGroup )

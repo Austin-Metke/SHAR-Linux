@@ -47,6 +47,20 @@ const char* DISPLAY_MENU_ITEMS[] =
 
 const float SLIDER_ICON_SCALE = 0.5f;
 
+#ifdef RAD_LINUX
+// Modern resolution list for Linux, mapped to menu indices 0-5
+// (reuses the 6 string slots in the Scrooby text element)
+static const struct { const char* name; Win32Platform::Resolution res; } LINUX_RESOLUTIONS[] =
+{
+    { "1280x720",  Win32Platform::Res_1280x720 },
+    { "1366x768",  Win32Platform::Res_1366x768 },
+    { "1920x1080", Win32Platform::Res_1920x1080 },
+    { "2560x1440", Win32Platform::Res_2560x1440 },
+    { "3840x2160", Win32Platform::Res_3840x2160 },
+};
+static const int NUM_LINUX_RESOLUTIONS = sizeof(LINUX_RESOLUTIONS) / sizeof(LINUX_RESOLUTIONS[0]);
+#endif
+
 //===========================================================================
 // Public Member Functions
 //===========================================================================
@@ -109,6 +123,23 @@ MEMTRACK_PUSH_GROUP( "CGuiScreenDisplay" );
                               pRArrow,
                               SELECTION_ENABLED | VALUES_WRAPPED | TEXT_OUTLINE_ENABLED );
     }
+
+#ifdef RAD_LINUX
+    // Override the resolution text strings with modern resolutions
+    {
+        Scrooby::Group* resGroup = pPage->GetGroup( "Resolution" );
+        rAssert( resGroup != NULL );
+        Scrooby::Text* resValue = resGroup->GetText( "Resolution_Value" );
+        if( resValue != NULL )
+        {
+            for( int r = 0; r < NUM_LINUX_RESOLUTIONS && r < resValue->GetNumOfStrings(); r++ )
+            {
+                resValue->SetString( r, LINUX_RESOLUTIONS[ r ].name );
+            }
+            m_pMenu->SetSelectionValueCount( MENU_ITEM_RESOLUTION, NUM_LINUX_RESOLUTIONS );
+        }
+    }
+#endif
 
     // Add the gamma slider
     Scrooby::Group* pgroup = pPage->GetGroup( "Gamma" );
@@ -254,8 +285,22 @@ void CGuiScreenDisplay::InitIntro()
     Win32Platform* plat = Win32Platform::GetInstance();
 
     Win32Platform::Resolution res = plat->GetResolution();
+#ifdef RAD_LINUX
+    // Map resolution enum to menu index
+    int resIndex = 0;
+    for( int i = 0; i < NUM_LINUX_RESOLUTIONS; i++ )
+    {
+        if( LINUX_RESOLUTIONS[ i ].res == res )
+        {
+            resIndex = i;
+            break;
+        }
+    }
+    m_pMenu->SetSelectionValue( MENU_ITEM_RESOLUTION, resIndex );
+#else
     m_pMenu->SetSelectionValue( MENU_ITEM_RESOLUTION,
                                 res );
+#endif
 
     int bpp = plat->GetBPP();
     m_pMenu->SetSelectionValue( MENU_ITEM_COLOUR_DEPTH,
@@ -331,7 +376,12 @@ void CGuiScreenDisplay::ApplySettings()
 {
     // Retrieve the settings.
     //
+#ifdef RAD_LINUX
+    int resIndex = m_pMenu->GetSelectionValue( MENU_ITEM_RESOLUTION );
+    Win32Platform::Resolution res = LINUX_RESOLUTIONS[ resIndex ].res;
+#else
     Win32Platform::Resolution res = static_cast< Win32Platform::Resolution >( m_pMenu->GetSelectionValue( MENU_ITEM_RESOLUTION ) );
+#endif
 
     int bpp = m_pMenu->GetSelectionValue( MENU_ITEM_COLOUR_DEPTH ) ? 32: 16;
 
