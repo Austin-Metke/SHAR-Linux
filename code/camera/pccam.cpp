@@ -36,8 +36,12 @@
 #include <choreo/utility.hpp>
 
 #include <input/inputmanager.h>
+#ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
 #include <input/Mouse.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
+#endif
 #include <input/RealController.h>
 
 #include <roads/geometry.h>
@@ -158,7 +162,11 @@ void PCCam::Update( unsigned int milliseconds )
         //rDebugPrintf( " yAxis = %g              xAxis = %g \n", yAxis, xAxis );
 
         static float Y_SENSE_MOD = 0.1f;
+#ifdef RAD_PC
         float mouseSense = static_cast<Mouse*>(GetInputManager()->GetController( 0 )->GetRealController( MOUSE ))->getSensitivityY();
+#else
+        float mouseSense = 0.5f;
+#endif
 
         gDefaultElevation += gElevationIncrement * m_fYawVelocity * m_fAngularSpeed * mouseSense * Y_SENSE_MOD;
 
@@ -194,7 +202,11 @@ void PCCam::Update( unsigned int milliseconds )
             gDefaultPitch = choreo::GetWorldAngle( camHeading.x, camHeading.z );
         }
 
+#ifdef RAD_PC
         float mouseSenseX = static_cast<Mouse*>(GetInputManager()->GetController( 0 )->GetRealController( MOUSE ))->getSensitivityX();
+#else
+        float mouseSenseX = 0.35f;
+#endif
 
         gDefaultPitch += gPitchIncrement * m_fPitchVelocity * m_fAngularSpeed * mouseSenseX;
 
@@ -211,7 +223,11 @@ void PCCam::Update( unsigned int milliseconds )
     {
         static float ROT_DIR = 4.0f;
         static float X_SENSE_MOD = 0.01f;
+#ifdef RAD_PC
         float mouseSense = static_cast<Mouse*>(GetInputManager()->GetController( 0 )->GetRealController( MOUSE ))->getSensitivityX();
+#else
+        float mouseSense = 0.35f;
+#endif
 
         float fScaleFactor = 1.0f;
         if( player->IsTurbo() ) 
