@@ -41,6 +41,8 @@
 #include <presentation/gui/frontend/guiscreenoptions.h>
 #ifdef RAD_PC
 #include <presentation/gui/frontend/guiscreencontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <presentation/gui/frontend/guiscreencontroller.h>
 #else
 #include <presentation/gui/frontend/guiscreencontroller.h>
 #endif
@@ -116,7 +118,7 @@ CGuiManagerFrontEnd::CGuiManagerFrontEnd
     m_isControllerReconnected( false ),
     m_wasFMVInputHandlerEnabled( false )
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     m_quittingGame = false;
 #endif
 }
@@ -384,7 +386,7 @@ CGuiManagerFrontEnd::Start( CGuiWindow::eGuiWindowID initialWindow )
                    CGuiWindow::GUI_SCREEN_ID_MAIN_MENU;
 
 // On PC never show the splash screen.. it is very console-ish...
-#if defined(SHOW_SPLASH_SCREEN) && !defined(RAD_PC)
+#if defined(SHOW_SPLASH_SCREEN) && !defined(RAD_PC) && !defined(RAD_LINUX)
     bool skipSplashScreen = CommandLineOptions::Get( CLO_NO_SPLASH );
 #else
     bool skipSplashScreen = true;
@@ -565,7 +567,7 @@ void CGuiManagerFrontEnd::HandleMessage
                     //
                     GetGameFlow()->SetContext( CONTEXT_SUPERSPRINT_FE );
                 }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
                 else if( m_quittingGame )
                 {
                     // let's begin the quit procedure
@@ -694,7 +696,7 @@ void CGuiManagerFrontEnd::HandleMessage
 
         case GUI_MSG_QUIT_GAME:
         {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             rAssert( GUI_FE_SCREEN_RUNNING == m_state );
 
             m_state = GUI_FE_SHUTTING_DOWN;

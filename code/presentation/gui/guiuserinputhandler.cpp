@@ -103,7 +103,7 @@ const ControlMap GUI_CONTROL_MAP[] =
     { "White",          GuiInput::R1 },
 #endif
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     { "feMoveLeft",     GuiInput::Left },
     { "feMoveRight",    GuiInput::Right },
     { "feMoveUp",       GuiInput::Up },
@@ -157,7 +157,7 @@ CGuiUserInputHandler::CGuiUserInputHandler( void )
     m_YAxisValue( 0.0f ),
     m_XAxisDuration( 0 ),
     m_YAxisDuration( 0 ),
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     m_RightValue( 0 ),
     m_LeftValue( 0 ),
     m_UpValue( 0 ),
@@ -480,7 +480,7 @@ void CGuiUserInputHandler::OnButton( int controllerId, int buttonId, const IButt
 
             break;
         }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         case GuiInput::Left:
         {
             if ( pButton->GetValue() > ANALOG_BUTTON_THRESHOLD && !( m_LeftValue > ANALOG_BUTTON_THRESHOLD ) )
@@ -551,7 +551,7 @@ void CGuiUserInputHandler::OnButtonDown( int controllerId, int buttonId, const I
 
     switch( buttonId )
     {
-#ifndef RAD_PC  // for windows we handle them in onbutton()
+#if !defined(RAD_PC) && !defined(RAD_LINUX)  // for windows we handle them in onbutton()
         case GuiInput::Left:
         {
             this->Left( controllerId );
@@ -679,7 +679,7 @@ void CGuiUserInputHandler::OnButtonDown( int controllerId, int buttonId, const I
         }
         default:
         {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
             if ( buttonId >= GuiInput::P1_KBD_Start && buttonId <= GuiInput::P1_KBD_Right )
             {
                 //This is a super sprint Key.
@@ -744,7 +744,7 @@ void CGuiUserInputHandler::Update( unsigned int elapsedTime, unsigned int contro
         this->ResetRepeatableButtons();
     }
 
-#ifndef RAD_PC
+#if !defined(RAD_PC) && !defined(RAD_LINUX)
     // check for repeated DPad inputs
     //
     for( unsigned int i = 0; i < sizeof( m_buttonDownDuration ) /
@@ -820,7 +820,7 @@ void CGuiUserInputHandler::Update( unsigned int elapsedTime, unsigned int contro
         }
     }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     if( m_LeftValue > ANALOG_BUTTON_THRESHOLD )
     {
         m_LeftDuration += elapsedTime;
@@ -875,7 +875,7 @@ void CGuiUserInputHandler::Update( unsigned int elapsedTime, unsigned int contro
 bool
 CGuiUserInputHandler::IsXAxisOnLeft() const
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     return( m_LeftValue > ANALOG_BUTTON_THRESHOLD );
 #else
     return( m_XAxisValue < -ANALOG_BUTTON_THRESHOLD );
@@ -885,7 +885,7 @@ CGuiUserInputHandler::IsXAxisOnLeft() const
 bool
 CGuiUserInputHandler::IsXAxisOnRight() const
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     return( m_RightValue > ANALOG_BUTTON_THRESHOLD );
 #else
     return( m_XAxisValue > ANALOG_BUTTON_THRESHOLD );
@@ -895,7 +895,7 @@ CGuiUserInputHandler::IsXAxisOnRight() const
 bool
 CGuiUserInputHandler::IsYAxisOnUp() const
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     return( m_UpValue > ANALOG_BUTTON_THRESHOLD );
 #else
     return( m_YAxisValue > ANALOG_BUTTON_THRESHOLD );
@@ -905,7 +905,7 @@ CGuiUserInputHandler::IsYAxisOnUp() const
 bool
 CGuiUserInputHandler::IsYAxisOnDown() const
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     return( m_DownValue > ANALOG_BUTTON_THRESHOLD );
 #else
     return( m_YAxisValue < -ANALOG_BUTTON_THRESHOLD );
@@ -930,7 +930,7 @@ CGuiUserInputHandler::ResetRepeatableButtons()
     m_XAxisDuration = -INPUT_REPEAT_WAIT;
     m_YAxisDuration = -INPUT_REPEAT_WAIT;
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     m_RightValue = 0;
     m_LeftValue = 0;
     m_UpValue = 0;
