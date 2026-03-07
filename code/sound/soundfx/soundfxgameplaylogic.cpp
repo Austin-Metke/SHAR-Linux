@@ -161,6 +161,8 @@ void SoundFXGameplayLogic::RegisterEventListeners()
     eventMgr->AddListener( this, EVENT_FE_LOCKED_OUT );
     eventMgr->AddListener( this, EVENT_BARREL_BLOWED_UP );
     eventMgr->AddListener( this, EVENT_FE_CREDITS_NEW_LINE );
+    eventMgr->AddListener( this, EVENT_FE_CHEAT_SUCCESS );
+    eventMgr->AddListener( this, EVENT_FE_CHEAT_FAILURE );
 }
 
 //=============================================================================
@@ -227,6 +229,12 @@ void SoundFXGameplayLogic::HandleEvent( EventEnum id, void* pEventData )
             break;
         case EVENT_FE_LOCKED_OUT:
             playSFXSound( "locked_out", false );
+            break;
+        case EVENT_FE_CHEAT_SUCCESS:
+            playSFXSound( "cheat_success", true, false, NULL, GetSoundManager()->GetSfxVolume() );
+            break;
+        case EVENT_FE_CHEAT_FAILURE:
+            playSFXSound( "cheat_fail", true, false, NULL, GetSoundManager()->GetSfxVolume() );
             break;
 
         case EVENT_COLLECTED_COINS:
