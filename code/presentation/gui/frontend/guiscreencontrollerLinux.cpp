@@ -65,7 +65,7 @@ CGuiScreenController::CGuiScreenController( Scrooby::Screen* pScreen, CGuiEntity
     SetGroups( m_pMSLabels, NUM_GAMESETTING_LABELS, szGSPage, "Menu",
                "Label", (SELECTION_ENABLED | VALUES_WRAPPED | TEXT_OUTLINE_ENABLED) );
 
-    // Hide unused game settings items (mouse/wheel stuff from the PC page)
+    // Fix up game settings page for Linux (only vibration toggle)
     {
         Scrooby::Page* pPage = m_pScroobyScreen->GetPage( szGSPage );
         if( pPage != NULL )
@@ -73,6 +73,11 @@ CGuiScreenController::CGuiScreenController( Scrooby::Screen* pScreen, CGuiEntity
             Scrooby::Group* group = pPage->GetGroup( "Menu" );
             if( group != NULL )
             {
+                // Override Label00 text from "Mouse Look" to "Vibration"
+                Scrooby::Text* pLabel00 = group->GetText( "Label00" );
+                if( pLabel00 != NULL )
+                    pLabel00->SetString( 0, "Vibration" );
+
                 // Hide items after the first one (Label01 through Label06 are mouse/wheel settings)
                 for( int i = NUM_GAMESETTING_LABELS; i < 7; i++ )
                 {

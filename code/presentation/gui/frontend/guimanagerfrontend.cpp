@@ -332,7 +332,7 @@ MEMTRACK_PUSH_GROUP( "CGUIManagerFrontEnd" );
         this->AddWindow( CGuiWindow::GUI_SCREEN_ID_VIEW_MOVIES, pScreen );
     }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     pScroobyScreen = m_pScroobyProject->GetScreen( "Display" );
     if( pScroobyScreen != NULL )
     {

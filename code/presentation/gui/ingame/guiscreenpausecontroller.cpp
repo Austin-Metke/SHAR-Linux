@@ -30,12 +30,14 @@
 #include <Layer.h>
 #include <Page.h>
 #include <Sprite.h>
+#include <Group.h>
 
 //===========================================================================
 // Global Data, Local Data, Local Classes
 //===========================================================================
 
 const float CONTROLLER_IMAGE_CORRECTION_SCALE = 2.0f;
+
 
 //===========================================================================
 // Public Member Functions
@@ -73,6 +75,7 @@ CGuiScreenPauseController::CGuiScreenPauseController
         controllerImage->ScaleAboutCenter( CONTROLLER_IMAGE_CORRECTION_SCALE );
     }
 #endif
+
 }
 
 

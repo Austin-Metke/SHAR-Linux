@@ -986,6 +986,7 @@ void UserController::LoadFEMappings()
         m_pController[GAMEPAD]->SetMap( SDLGP_LEFTSTICK_X, DIR_DOWN, InputManager::feMoveLeft );
         m_pController[GAMEPAD]->SetMap( SDLGP_A, DIR_UP, InputManager::feSelect );
         m_pController[GAMEPAD]->SetMap( SDLGP_B, DIR_UP, InputManager::feBack );
+        m_pController[GAMEPAD]->SetMap( SDLGP_START, DIR_UP, InputManager::feStart );
         m_pController[GAMEPAD]->SetMap( SDLGP_DPAD_UP, DIR_UP, InputManager::feMoveUp );
         m_pController[GAMEPAD]->SetMap( SDLGP_DPAD_DOWN, DIR_UP, InputManager::feMoveDown );
         m_pController[GAMEPAD]->SetMap( SDLGP_DPAD_RIGHT, DIR_UP, InputManager::feMoveRight );
