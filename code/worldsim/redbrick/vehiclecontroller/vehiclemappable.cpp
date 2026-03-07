@@ -7,7 +7,7 @@
 //
 #include <worldsim/avatarmanager.h>
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
 #include <gameflow/gameflow.h>
 #include <contexts/context.h>
 #endif
@@ -228,7 +228,7 @@ void VehicleMappable::LoadControllerMappings( unsigned int controllerId )
 
     #endif
 
-    #ifdef RAD_PC
+    #if defined(RAD_PC) || defined(RAD_LINUX)
 
     ClearMap(0);
     if ( GetGameFlow()->GetCurrentContext() == CONTEXT_LOADING_SUPERSPRINT &&

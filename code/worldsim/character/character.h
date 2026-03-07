@@ -377,7 +377,7 @@ public: // MEMBERS
     bool mbSurfing;
     bool mbAllowUnload;
     bool mbIsPlayingIdleAnim; // shuffling feet, scratching bum, etc.
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     int mPCCamFacing; // 0 = cam direction, 1 = cam's right, 2 = facing cam, 3 = cam's left
 #endif
 

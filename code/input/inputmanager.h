@@ -25,6 +25,8 @@
 #ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
 #include <input/FEMouse.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
 #else
 #include <input/usercontroller.h>
 #endif
@@ -45,7 +47,75 @@ class InputManager : public IRadControllerConnectionChangeCallback,
                      public GameDataHandler
 {
 public:
-#if defined(RAD_XBOX) || defined(RAD_CONSOLE) && defined(RAD_WIN32)
+#if defined(RAD_LINUX)
+    enum eButtonMap
+    {
+        MoveUp,
+        MoveDown,
+        MoveLeft,
+        MoveRight,
+        Attack,
+        Jump,
+        Sprint,
+        DoAction,
+        Accelerate,
+        Reverse,
+        SteerLeft,
+        SteerRight,
+        GetOutCar,
+        HandBrake,
+        Horn,
+        ResetCar,
+        CameraLeft,
+        CameraRight,
+        CameraMoveIn,
+        CameraMoveOut,
+        CameraZoom,
+        CameraLookUp,
+        CameraCarLeft,
+        CameraCarRight,
+        CameraCarLookUp,
+        CameraCarLookBack,
+        CameraToggle,
+        feBack,
+        feMoveUp,
+        feMoveDown,
+        feMoveLeft,
+        feMoveRight,
+        feSelect,
+        feFunction1,
+        feFunction2,
+        feMouseLeft,
+        feMouseRight,
+        feMouseUp,
+        feMouseDown,
+
+        P1_KBD_Start,
+        P1_KBD_Gas,
+        P1_KBD_Brake,
+        P1_KBD_EBrake,
+        P1_KBD_Nitro,
+        P1_KBD_Left,
+        P1_KBD_Right,
+        Select = feBack,
+        Start = feSelect,
+        DPadUp = MoveUp,
+        DPadRight = MoveRight,
+        DPadDown = MoveDown,
+        DPadLeft = MoveLeft,
+        R1 = HandBrake,
+        Triangle = DoAction,
+        Circle = Sprint,
+        X = Jump,
+        Square = Attack,
+        L3 = Horn,
+        AnalogL1 = CameraZoom,
+        AnalogR1 = CameraLookUp,
+        LeftStickX = 200,
+        LeftStickY = 201,
+        KeyboardEsc = 202
+    };
+#elif defined(RAD_XBOX) || defined(RAD_CONSOLE) && defined(RAD_WIN32)
     enum eButtonMap
     {
         DPadUp,
@@ -294,6 +364,8 @@ public:
 
 #ifdef RAD_PC
     FEMouse* GetFEMouse() const { return m_pFEMouse; }
+#elif defined(RAD_LINUX)
+    // No FEMouse on Linux
 #endif
 
 #ifdef RAD_PS2

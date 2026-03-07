@@ -100,7 +100,7 @@ public:
         RELATIVE_ANIMATED_CAM,
         SUPER_SPRINT_CAM,
         FIRST_PERSON_CAM,
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         ON_FOOT_CAM,
         PC_CAM,
 #endif

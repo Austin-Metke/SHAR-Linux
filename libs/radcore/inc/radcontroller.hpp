@@ -58,6 +58,10 @@ union SDL_HapticEffect;
 void radControllerInitialize( IRadControllerConnectionChangeCallback* pConnectionChangeCallback = NULL, radMemoryAllocator alloc = RADMEMORY_ALLOC_DEFAULT ); 
 void radControllerTerminate( void );
 
+#ifdef RAD_LINUX
+void radControllerSetKeyboardMappingDisabled( bool disabled );
+#endif
+
 //
 // Use this function to obtain an interface to the controller system object. Remeber
 // to add ref if you hold onto the interface.

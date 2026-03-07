@@ -8,7 +8,7 @@ Create<globalSettings>("tuner")
 #ifdef RAD_XBOX
     .SetMusicVolume ( 0.840000f )
 #endif
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     .SetMusicVolume ( 0.840000f )
 #endif
     .SetDialogueVolume ( 1.000000f )

@@ -48,7 +48,7 @@ class BootupContext : public Context,
         void StartLoadingSound();
         void ResetLicenseScreenDisplayTime() { m_elapsedTime = 0; }
 
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
         void LoadConfig();
 #endif
 
