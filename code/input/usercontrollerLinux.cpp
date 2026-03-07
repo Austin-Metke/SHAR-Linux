@@ -683,19 +683,19 @@ void UserController::LoadDefaults()
     SetMap( SLOT_SECONDARY, InputManager::MoveDown, GAMEPAD, SDLGP_LEFTSTICK_Y, DIR_DOWN );
     SetMap( SLOT_SECONDARY, InputManager::MoveLeft, GAMEPAD, SDLGP_LEFTSTICK_X, DIR_DOWN );
     SetMap( SLOT_SECONDARY, InputManager::MoveRight, GAMEPAD, SDLGP_LEFTSTICK_X, DIR_UP );
-    SetMap( SLOT_SECONDARY, InputManager::Attack, GAMEPAD, SDLGP_X );
-    SetMap( SLOT_SECONDARY, InputManager::Jump, GAMEPAD, SDLGP_A );
-    SetMap( SLOT_SECONDARY, InputManager::Sprint, GAMEPAD, SDLGP_RIGHTTRIGGER );
-    SetMap( SLOT_SECONDARY, InputManager::DoAction, GAMEPAD, SDLGP_Y );
+    SetMap( SLOT_SECONDARY, InputManager::Attack, GAMEPAD, SDLGP_Y );
+    SetMap( SLOT_SECONDARY, InputManager::Jump, GAMEPAD, SDLGP_B );
+    SetMap( SLOT_SECONDARY, InputManager::Sprint, GAMEPAD, SDLGP_A );
+    SetMap( SLOT_SECONDARY, InputManager::DoAction, GAMEPAD, SDLGP_X );
 
-    SetMap( SLOT_SECONDARY, InputManager::Accelerate, GAMEPAD, SDLGP_RIGHTTRIGGER );
+    SetMap( SLOT_SECONDARY, InputManager::Accelerate, GAMEPAD, SDLGP_A );
     SetMap( SLOT_SECONDARY, InputManager::Reverse, GAMEPAD, SDLGP_LEFTTRIGGER );
     SetMap( SLOT_SECONDARY, InputManager::SteerLeft, GAMEPAD, SDLGP_LEFTSTICK_X, DIR_DOWN );
     SetMap( SLOT_SECONDARY, InputManager::SteerRight, GAMEPAD, SDLGP_LEFTSTICK_X, DIR_UP );
     SetMap( SLOT_SECONDARY, InputManager::GetOutCar, GAMEPAD, SDLGP_Y );
     SetMap( SLOT_SECONDARY, InputManager::HandBrake, GAMEPAD, SDLGP_B );
     SetMap( SLOT_SECONDARY, InputManager::Horn, GAMEPAD, SDLGP_LEFTSHOULDER );
-    SetMap( SLOT_SECONDARY, InputManager::ResetCar, GAMEPAD, SDLGP_RIGHTSHOULDER );
+    SetMap( SLOT_SECONDARY, InputManager::ResetCar, GAMEPAD, SDLGP_DPAD_UP );
 
     SetMap( SLOT_SECONDARY, InputManager::CameraLeft, GAMEPAD, SDLGP_RIGHTSTICK_X, DIR_DOWN );
     SetMap( SLOT_SECONDARY, InputManager::CameraRight, GAMEPAD, SDLGP_RIGHTSTICK_X, DIR_UP );
