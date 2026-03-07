@@ -59,13 +59,20 @@ static const CheatInputMapping CHEAT_INPUT_MAPPINGS[] =
     { "RightTrigger",   CHEAT_INPUT_RTRIGGER },
 #endif
 
-#if defined(RAD_PC) || defined(RAD_LINUX)        // these are not laid out yet
+#if defined(RAD_PC) || defined(RAD_LINUX)
+    // Keyboard: hold F1 + arrow keys
+    { "feMoveUp",       CHEAT_INPUT_0 },
+    { "feMoveDown",     CHEAT_INPUT_1 },
+    { "feMoveLeft",     CHEAT_INPUT_2 },
+    { "feMoveRight",    CHEAT_INPUT_3 },
+    { "feFunction1",    CHEAT_INPUT_LTRIGGER },
+    // Controller: hold shoulder buttons + face buttons
     { "Attack",         CHEAT_INPUT_0 },
     { "Jump",           CHEAT_INPUT_1 },
     { "Sprint",         CHEAT_INPUT_2 },
     { "DoAction",       CHEAT_INPUT_3 },
-    { "CameraFunc1",    CHEAT_INPUT_LTRIGGER },
-    { "CameraFunc2",    CHEAT_INPUT_RTRIGGER },
+    { "Horn",           CHEAT_INPUT_LTRIGGER },
+    { "CameraToggle",   CHEAT_INPUT_RTRIGGER },
 #endif
 
     { "",               UNKNOWN_CHEAT_INPUT }
@@ -199,9 +206,14 @@ void CheatInputHandler::OnButtonDown( int controllerId,
         {
             m_LTriggerBitMask |= (1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // On PC/Linux, activate on either trigger so keyboard F1 alone works
+            GetCheatInputSystem()->SetActivated( controllerId, true );
+#else
             bool isRTriggerDown = ((m_RTriggerBitMask & (1 << controllerId)) > 0);
             GetCheatInputSystem()->SetActivated( controllerId,
                                                  isRTriggerDown );
+#endif
 
             break;
         }
@@ -209,9 +221,14 @@ void CheatInputHandler::OnButtonDown( int controllerId,
         {
             m_RTriggerBitMask |= (1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // On PC/Linux, activate on either trigger so keyboard F1 alone works
+            GetCheatInputSystem()->SetActivated( controllerId, true );
+#else
             bool isLTriggerDown = ((m_LTriggerBitMask & (1 << controllerId)) > 0);
             GetCheatInputSystem()->SetActivated( controllerId,
                                                  isLTriggerDown );
+#endif
 
             break;
         }
@@ -266,7 +283,15 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             m_LTriggerBitMask &= ~(1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // Stay activated if the other trigger is still held
+            {
+                bool isRTriggerDown = ((m_RTriggerBitMask & (1 << controllerId)) > 0);
+                GetCheatInputSystem()->SetActivated( controllerId, isRTriggerDown );
+            }
+#else
             GetCheatInputSystem()->SetActivated( controllerId, false );
+#endif
 
             break;
         }
@@ -274,7 +299,15 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             m_RTriggerBitMask &= ~(1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // Stay activated if the other trigger is still held
+            {
+                bool isLTriggerDown = ((m_LTriggerBitMask & (1 << controllerId)) > 0);
+                GetCheatInputSystem()->SetActivated( controllerId, isLTriggerDown );
+            }
+#else
             GetCheatInputSystem()->SetActivated( controllerId, false );
+#endif
 
             break;
         }
