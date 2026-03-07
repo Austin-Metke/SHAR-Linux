@@ -6,6 +6,8 @@
 #include <input/inputmanager.h>
 #ifdef RAD_PC
 #include <input/usercontrollerWin32.h>
+#elif defined(RAD_LINUX)
+#include <input/usercontrollerLinux.h>
 #endif
 
 //
@@ -147,7 +149,7 @@ void CharacterMappable::LoadControllerMappings( unsigned int controllerId )
     Map( "X", CharacterController::Dash, 0, controllerId );
     Map( "B", CharacterController::Attack, 0, controllerId );
 #endif
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     ClearMap( 0 );
     Map( "MoveUp", CharacterController::DPadUp, 0, controllerId );
     Map( "MoveDown", CharacterController::DPadDown, 0, controllerId );
@@ -210,7 +212,7 @@ void BipedCharacterMappable::OnButtonDown( int controllerId, int buttonId, const
 }
 void BipedCharacterMappable::GetDirection( rmt::Vector& outDirection ) const
 {
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     if ( GetSuperCamManager()->GetSCC( 0 )->GetActiveSuperCam()->GetType() == SuperCam::PC_CAM ) //Mouse look enabled
     {
         float right = GetValue( CharacterController::MouseLookRight );
@@ -237,7 +239,7 @@ void BipedCharacterMappable::GetDirection( rmt::Vector& outDirection ) const
 
     //The DPad overrides the analog stick.
     outDirection = tempDir2.MagnitudeSqr() != 0.0f ? tempDir2 : tempDir;
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     }
 #endif
 }
@@ -263,7 +265,7 @@ void InCarCharacterMappable::OnButtonDown( int controllerId, int buttonId, const
             GetCharacterController()->SetIntention( CharacterController::DoAction );
             break;
         }
-#ifdef RAD_PC
+#if defined(RAD_PC) || defined(RAD_LINUX)
     case CharacterController::GetOutCar:
         {
             GetCharacterController()->SetIntention( CharacterController::GetOutCar );
