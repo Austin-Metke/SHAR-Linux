@@ -443,10 +443,7 @@ void CGuiScreenPhoneBooth::HandleMessage
     {
         if( message == GUI_MSG_CONTROLLER_L1 || message == GUI_MSG_CONTROLLER_R1 )
         {
-#ifdef FINAL
-            if( GetCheatInputSystem()->IsCheatEnabled( CHEAT_ID_UNLOCK_VEHICLES ) &&
-                GetCharacterSheetManager()->QueryPercentGameCompleted() > 99.999f )
-#endif
+            if( GetCheatInputSystem()->IsCheatEnabled( CHEAT_ID_UNLOCK_VEHICLES ) )
             {
                 rAssert( m_carSelectOverlay != NULL );
 
@@ -458,10 +455,7 @@ void CGuiScreenPhoneBooth::HandleMessage
                 {
                     this->SetButtonVisible( BUTTON_ICON_ACCEPT, true );
 
-// Teleportation menu disabled in final build
-//#ifndef FINAL
                     m_menuTeleport = (message == GUI_MSG_CONTROLLER_L1);
-//#endif
                     Scrooby::Text* menuLabel = dynamic_cast<Scrooby::Text*>( m_pMenu->GetMenuItem( 0 )->GetItem() );
                     rAssert( menuLabel != NULL );
 
