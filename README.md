@@ -1,4 +1,4 @@
-# D'oh! (Linux Fork)
+# D'oh!
 
 This is a Linux fork of [ZenoArrows' Nintendo Switch & PS Vita port](https://github.com/ZenoArrows/The-Simpsons-Hit-and-Run) of The Simpsons Hit & Run, based on the leaked source code. The upstream port targets the Nintendo Switch and PS Vita; this fork adds native Linux desktop support.
 
