@@ -59,13 +59,10 @@ static const CheatInputMapping CHEAT_INPUT_MAPPINGS[] =
     { "RightTrigger",   CHEAT_INPUT_RTRIGGER },
 #endif
 
-#if defined(RAD_PC) || defined(RAD_LINUX)        // these are not laid out yet
-    { "Attack",         CHEAT_INPUT_0 },
-    { "Jump",           CHEAT_INPUT_1 },
-    { "Sprint",         CHEAT_INPUT_2 },
-    { "DoAction",       CHEAT_INPUT_3 },
-    { "CameraFunc1",    CHEAT_INPUT_LTRIGGER },
-    { "CameraFunc2",    CHEAT_INPUT_RTRIGGER },
+#if defined(RAD_PC) || defined(RAD_LINUX)
+    // All cheat input on PC/Linux is routed through HandlePhysicalButton
+    // from UserController::OnControllerInputPointChange, bypassing the
+    // Mappable remapping system entirely.
 #endif
 
     { "",               UNKNOWN_CHEAT_INPUT }
@@ -96,6 +93,11 @@ CheatInputHandler::CheatInputHandler()
     m_currentInputIndex( 0 )
 {
     this->ResetInputSequence();
+
+    for( unsigned int i = 0; i < NUM_AUXILIARY_CHEAT_INPUTS; i++ )
+    {
+        m_prevPhysicalButtonState[ i ] = false;
+    }
 }
 
 //===========================================================================
@@ -154,9 +156,20 @@ CheatInputHandler::ResetInputSequence()
 const char*
 CheatInputHandler::GetInputName( eCheatInput cheatInput )
 {
+#if defined(RAD_PC) || defined(RAD_LINUX)
+    // On PC/Linux, cheat input bypasses the Mappable mapping table entirely,
+    // so CHEAT_INPUT_MAPPINGS has no entries. Return fixed button names.
+    static const char* s_inputNames[] = { "A", "B", "X", "Y" };
+    if( cheatInput >= 0 && cheatInput < NUM_CHEAT_INPUTS )
+    {
+        return s_inputNames[ cheatInput ];
+    }
+    return "";
+#else
     rAssert( cheatInput < static_cast<int>( NUM_CHEAT_INPUT_MAPPINGS ) );
 
     return CHEAT_INPUT_MAPPINGS[ cheatInput ].inputName;
+#endif
 }
 
 //===========================================================================
@@ -199,9 +212,14 @@ void CheatInputHandler::OnButtonDown( int controllerId,
         {
             m_LTriggerBitMask |= (1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // On PC/Linux, activate on either trigger so keyboard F1 alone works
+            GetCheatInputSystem()->SetActivated( controllerId, true );
+#else
             bool isRTriggerDown = ((m_RTriggerBitMask & (1 << controllerId)) > 0);
             GetCheatInputSystem()->SetActivated( controllerId,
                                                  isRTriggerDown );
+#endif
 
             break;
         }
@@ -209,9 +227,14 @@ void CheatInputHandler::OnButtonDown( int controllerId,
         {
             m_RTriggerBitMask |= (1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // On PC/Linux, activate on either trigger so keyboard F1 alone works
+            GetCheatInputSystem()->SetActivated( controllerId, true );
+#else
             bool isLTriggerDown = ((m_LTriggerBitMask & (1 << controllerId)) > 0);
             GetCheatInputSystem()->SetActivated( controllerId,
                                                  isLTriggerDown );
+#endif
 
             break;
         }
@@ -266,7 +289,15 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             m_LTriggerBitMask &= ~(1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // Stay activated if the other trigger is still held
+            {
+                bool isRTriggerDown = ((m_RTriggerBitMask & (1 << controllerId)) > 0);
+                GetCheatInputSystem()->SetActivated( controllerId, isRTriggerDown );
+            }
+#else
             GetCheatInputSystem()->SetActivated( controllerId, false );
+#endif
 
             break;
         }
@@ -274,7 +305,15 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             m_RTriggerBitMask &= ~(1 << controllerId);
 
+#if defined(RAD_LINUX) || defined(RAD_PC)
+            // Stay activated if the other trigger is still held
+            {
+                bool isLTriggerDown = ((m_LTriggerBitMask & (1 << controllerId)) > 0);
+                GetCheatInputSystem()->SetActivated( controllerId, isLTriggerDown );
+            }
+#else
             GetCheatInputSystem()->SetActivated( controllerId, false );
+#endif
 
             break;
         }
@@ -282,6 +321,46 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             break;
         }
+    }
+}
+
+//===========================================================================
+// CheatInputHandler::HandlePhysicalButton
+//===========================================================================
+// Description: Process a physical controller button directly, bypassing the
+//              Mappable remapping system. This ensures cheats always use the
+//              default physical button layout regardless of user remapping.
+//
+// Constraints:	None.
+//
+// Parameters:	controllerId - the controller index
+//              cheatInputId - CHEAT_INPUT_0..3 or CHEAT_INPUT_LTRIGGER/RTRIGGER
+//              value        - 0.0 for released, >0 for pressed
+//
+// Return:      None.
+//
+//===========================================================================
+void CheatInputHandler::HandlePhysicalButton( int controllerId,
+                                              int cheatInputId,
+                                              float value )
+{
+    rAssert( cheatInputId >= 0 && cheatInputId < NUM_AUXILIARY_CHEAT_INPUTS );
+
+    bool wasDown = m_prevPhysicalButtonState[ cheatInputId ];
+    bool isDown = ( value > 0.0f );
+    m_prevPhysicalButtonState[ cheatInputId ] = isDown;
+
+    if( isDown && !wasDown )
+    {
+        Button btn;
+        btn.SetValue( value );
+        OnButtonDown( controllerId, cheatInputId, &btn );
+    }
+    else if( !isDown && wasDown )
+    {
+        Button btn;
+        btn.SetValue( 0.0f );
+        OnButtonUp( controllerId, cheatInputId, &btn );
     }
 }
 

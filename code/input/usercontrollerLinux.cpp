@@ -13,6 +13,9 @@
 #include <input/GamepadSDL.h>
 #include <input/inputmanager.h>
 
+#include <cheats/cheatinputsystem.h>
+#include <cheats/cheatinputhandler.h>
+
 #include <presentation/tutorialmanager.h>
 
 #include <console/fbstricmp.h>
@@ -227,6 +230,44 @@ void UserController::OnControllerInputPointChange( unsigned int code, float valu
     if( cont == KEYBOARD && dxKey == SDL_SCANCODE_ESCAPE && value > 0 )
     {
         mKeyboardBack = true;
+    }
+
+    // Route physical buttons directly to the cheat system, bypassing the
+    // Mappable remapping system entirely. This ensures cheats always use
+    // the default button layout regardless of user remapping.
+    {
+        int cheatInput = -1;
+        if( cont == GAMEPAD )
+        {
+            switch( dxKey )
+            {
+                case SDLGP_A:              cheatInput = CHEAT_INPUT_0; break;
+                case SDLGP_B:              cheatInput = CHEAT_INPUT_1; break;
+                case SDLGP_X:              cheatInput = CHEAT_INPUT_2; break;
+                case SDLGP_Y:              cheatInput = CHEAT_INPUT_3; break;
+                case SDLGP_LEFTSHOULDER:   cheatInput = CHEAT_INPUT_LTRIGGER; break;
+                case SDLGP_RIGHTSHOULDER:  cheatInput = CHEAT_INPUT_RTRIGGER; break;
+            }
+        }
+        else if( cont == KEYBOARD )
+        {
+            switch( dxKey )
+            {
+                case SDL_SCANCODE_UP:      cheatInput = CHEAT_INPUT_0; break;
+                case SDL_SCANCODE_DOWN:     cheatInput = CHEAT_INPUT_1; break;
+                case SDL_SCANCODE_LEFT:     cheatInput = CHEAT_INPUT_2; break;
+                case SDL_SCANCODE_RIGHT:    cheatInput = CHEAT_INPUT_3; break;
+                case SDL_SCANCODE_F1:       cheatInput = CHEAT_INPUT_LTRIGGER; break;
+            }
+        }
+        if( cheatInput >= 0 )
+        {
+            CheatInputSystem* pCheatSystem = CheatInputSystem::GetInstance();
+            if( pCheatSystem != NULL && pCheatSystem->IsEnabled() )
+            {
+                pCheatSystem->HandlePhysicalButton( m_controllerId, cheatInput, value );
+            }
+        }
     }
 
     float dvalues[ NUM_DIRTYPES ];

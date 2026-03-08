@@ -48,9 +48,18 @@ public:
     {
         m_LTriggerBitMask = 0;
         m_RTriggerBitMask = 0;
+
+        for( unsigned int i = 0; i < NUM_AUXILIARY_CHEAT_INPUTS; i++ )
+        {
+            m_prevPhysicalButtonState[ i ] = false;
+        }
     }
 
     void ResetInputSequence();
+
+    // Handle a physical controller button directly (bypassing Mappable remapping).
+    // cheatInputId should be a CHEAT_INPUT_* or CHEAT_INPUT_LTRIGGER/RTRIGGER value.
+    void HandlePhysicalButton( int controllerId, int cheatInputId, float value );
 
     static const char* GetInputName( eCheatInput cheatInput );
 
@@ -80,6 +89,9 @@ private:
 
     eCheatInput m_inputSequence[ NUM_CHEAT_SEQUENCE_INPUTS ];
     unsigned int m_currentInputIndex;
+
+    // Tracks previous pressed state for physical buttons handled via HandlePhysicalButton
+    bool m_prevPhysicalButtonState[ NUM_AUXILIARY_CHEAT_INPUTS ];
 
 };
 
