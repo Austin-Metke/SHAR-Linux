@@ -60,14 +60,9 @@ static const CheatInputMapping CHEAT_INPUT_MAPPINGS[] =
 #endif
 
 #if defined(RAD_PC) || defined(RAD_LINUX)
-    // Keyboard: hold F1 + arrow keys
-    { "feMoveUp",       CHEAT_INPUT_0 },
-    { "feMoveDown",     CHEAT_INPUT_1 },
-    { "feMoveLeft",     CHEAT_INPUT_2 },
-    { "feMoveRight",    CHEAT_INPUT_3 },
-    { "feFunction1",    CHEAT_INPUT_LTRIGGER },
-    // Controller face/shoulder buttons are handled via HandlePhysicalButton
-    // so that the default physical layout is always used regardless of remapping.
+    // All cheat input on PC/Linux is routed through HandlePhysicalButton
+    // from UserController::OnControllerInputPointChange, bypassing the
+    // Mappable remapping system entirely.
 #endif
 
     { "",               UNKNOWN_CHEAT_INPUT }
