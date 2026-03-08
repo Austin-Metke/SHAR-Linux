@@ -10,7 +10,29 @@ Please report any Linux-specific bugs or feature requests in the issues tab on t
 
 This port uses the PC assets, so you will need to have the PC version of the game installed. Do not use the assets from the source code leak as those are not the final version, instead use the assets from the official release. Also make sure you're using the original `.rmv` movie files in the `movies` folder rather than the converted `.bk2` files that older releases of the port required.
 
-For Linux, build from source using the instructions below, then place the resulting binary alongside your PC game assets.
+For Linux, build from source using the instructions below, or use a pre-compiled binary from the releases page, then place the resulting binary alongside your PC game assets.
+
+## Runtime Dependencies
+
+If you are running a pre-compiled binary, the following shared libraries must be installed on your system:
+
+| Library | Debian/Ubuntu | Arch/Manjaro | Fedora |
+|---------|--------------|--------------|--------|
+| SDL2 (or SDL3) | `libsdl2-2.0-0` | `sdl2` | `SDL2` |
+| OpenAL | `libopenal1` | `openal` | `openal-soft` |
+| libpng | `libpng16-16` | `libpng` | `libpng` |
+| FFmpeg (≥ 5.0) | `ffmpeg` | `ffmpeg` | `ffmpeg-free` |
+| OpenGL | `libgl1` | `mesa` | `mesa-libGL` |
+
+Quick install (Debian/Ubuntu):
+```
+sudo apt install libsdl2-2.0-0 libopenal1 libpng16-16 ffmpeg libgl1
+```
+
+Quick install (Arch/Manjaro):
+```
+sudo pacman -S sdl2 openal libpng ffmpeg mesa
+```
 
 For Nintendo Switch and PS Vita installation, see the [upstream project releases and instructions](https://github.com/ZenoArrows/The-Simpsons-Hit-and-Run).
 
