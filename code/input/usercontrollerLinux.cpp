@@ -13,6 +13,9 @@
 #include <input/GamepadSDL.h>
 #include <input/inputmanager.h>
 
+#include <cheats/cheatinputsystem.h>
+#include <cheats/cheatinputhandler.h>
+
 #include <presentation/tutorialmanager.h>
 
 #include <console/fbstricmp.h>
@@ -227,6 +230,31 @@ void UserController::OnControllerInputPointChange( unsigned int code, float valu
     if( cont == KEYBOARD && dxKey == SDL_SCANCODE_ESCAPE && value > 0 )
     {
         mKeyboardBack = true;
+    }
+
+    // Route physical gamepad face/shoulder buttons directly to the cheat
+    // system using the default button layout, so cheats work regardless of
+    // user remapping.
+    if( cont == GAMEPAD )
+    {
+        int cheatInput = -1;
+        switch( dxKey )
+        {
+            case SDLGP_Y:              cheatInput = CHEAT_INPUT_0; break;
+            case SDLGP_B:              cheatInput = CHEAT_INPUT_1; break;
+            case SDLGP_A:              cheatInput = CHEAT_INPUT_2; break;
+            case SDLGP_X:              cheatInput = CHEAT_INPUT_3; break;
+            case SDLGP_LEFTSHOULDER:   cheatInput = CHEAT_INPUT_LTRIGGER; break;
+            case SDLGP_RIGHTSHOULDER:  cheatInput = CHEAT_INPUT_RTRIGGER; break;
+        }
+        if( cheatInput >= 0 )
+        {
+            CheatInputSystem* pCheatSystem = CheatInputSystem::GetInstance();
+            if( pCheatSystem != NULL && pCheatSystem->IsEnabled() )
+            {
+                pCheatSystem->HandlePhysicalButton( m_controllerId, cheatInput, value );
+            }
+        }
     }
 
     float dvalues[ NUM_DIRTYPES ];

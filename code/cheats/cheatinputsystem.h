@@ -71,6 +71,10 @@ public:
     void RegisterCallback( ICheatEnteredCallback* callback );
     void UnregisterCallback( ICheatEnteredCallback* callback );
 
+    // Forward a physical controller button to the cheat input handler,
+    // bypassing the Mappable remapping system.
+    void HandlePhysicalButton( int controllerId, int cheatInputId, float value );
+
 private:
     //---------------------------------------------------------------------
     // Private Functions

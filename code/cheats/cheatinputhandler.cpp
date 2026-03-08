@@ -66,13 +66,8 @@ static const CheatInputMapping CHEAT_INPUT_MAPPINGS[] =
     { "feMoveLeft",     CHEAT_INPUT_2 },
     { "feMoveRight",    CHEAT_INPUT_3 },
     { "feFunction1",    CHEAT_INPUT_LTRIGGER },
-    // Controller: hold shoulder buttons + face buttons
-    { "Attack",         CHEAT_INPUT_0 },
-    { "Jump",           CHEAT_INPUT_1 },
-    { "Sprint",         CHEAT_INPUT_2 },
-    { "DoAction",       CHEAT_INPUT_3 },
-    { "Horn",           CHEAT_INPUT_LTRIGGER },
-    { "CameraToggle",   CHEAT_INPUT_RTRIGGER },
+    // Controller face/shoulder buttons are handled via HandlePhysicalButton
+    // so that the default physical layout is always used regardless of remapping.
 #endif
 
     { "",               UNKNOWN_CHEAT_INPUT }
@@ -103,6 +98,11 @@ CheatInputHandler::CheatInputHandler()
     m_currentInputIndex( 0 )
 {
     this->ResetInputSequence();
+
+    for( unsigned int i = 0; i < NUM_AUXILIARY_CHEAT_INPUTS; i++ )
+    {
+        m_prevPhysicalButtonState[ i ] = false;
+    }
 }
 
 //===========================================================================
@@ -315,6 +315,46 @@ void CheatInputHandler::OnButtonUp( int controllerId,
         {
             break;
         }
+    }
+}
+
+//===========================================================================
+// CheatInputHandler::HandlePhysicalButton
+//===========================================================================
+// Description: Process a physical controller button directly, bypassing the
+//              Mappable remapping system. This ensures cheats always use the
+//              default physical button layout regardless of user remapping.
+//
+// Constraints:	None.
+//
+// Parameters:	controllerId - the controller index
+//              cheatInputId - CHEAT_INPUT_0..3 or CHEAT_INPUT_LTRIGGER/RTRIGGER
+//              value        - 0.0 for released, >0 for pressed
+//
+// Return:      None.
+//
+//===========================================================================
+void CheatInputHandler::HandlePhysicalButton( int controllerId,
+                                              int cheatInputId,
+                                              float value )
+{
+    rAssert( cheatInputId >= 0 && cheatInputId < NUM_AUXILIARY_CHEAT_INPUTS );
+
+    bool wasDown = m_prevPhysicalButtonState[ cheatInputId ];
+    bool isDown = ( value > 0.0f );
+    m_prevPhysicalButtonState[ cheatInputId ] = isDown;
+
+    if( isDown && !wasDown )
+    {
+        Button btn;
+        btn.SetValue( value );
+        OnButtonDown( controllerId, cheatInputId, &btn );
+    }
+    else if( !isDown && wasDown )
+    {
+        Button btn;
+        btn.SetValue( 0.0f );
+        OnButtonUp( controllerId, cheatInputId, &btn );
     }
 }
 

@@ -508,6 +508,32 @@ CheatInputSystem::UnregisterCallback( ICheatEnteredCallback* callback )
 }
 
 //===========================================================================
+// CheatInputSystem::HandlePhysicalButton
+//===========================================================================
+// Description: Forward a physical controller button to the cheat input
+//              handler, bypassing the Mappable remapping system.
+//
+// Constraints:	None.
+//
+// Parameters:	controllerId - the controller index
+//              cheatInputId - CHEAT_INPUT_0..3 or CHEAT_INPUT_LTRIGGER/RTRIGGER
+//              value        - 0.0 for released, >0 for pressed
+//
+// Return:      None.
+//
+//===========================================================================
+void
+CheatInputSystem::HandlePhysicalButton( int controllerId,
+                                        int cheatInputId,
+                                        float value )
+{
+    if( m_enabled && m_cheatInputHandler != NULL )
+    {
+        m_cheatInputHandler->HandlePhysicalButton( controllerId, cheatInputId, value );
+    }
+}
+
+//===========================================================================
 // Private Member Functions
 //===========================================================================
 
