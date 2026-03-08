@@ -48,6 +48,11 @@ public:
     {
         m_LTriggerBitMask = 0;
         m_RTriggerBitMask = 0;
+
+        for( unsigned int i = 0; i < NUM_AUXILIARY_CHEAT_INPUTS; i++ )
+        {
+            m_prevPhysicalButtonState[ i ] = false;
+        }
     }
 
     void ResetInputSequence();

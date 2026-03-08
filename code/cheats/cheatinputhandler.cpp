@@ -156,9 +156,20 @@ CheatInputHandler::ResetInputSequence()
 const char*
 CheatInputHandler::GetInputName( eCheatInput cheatInput )
 {
+#if defined(RAD_PC) || defined(RAD_LINUX)
+    // On PC/Linux, cheat input bypasses the Mappable mapping table entirely,
+    // so CHEAT_INPUT_MAPPINGS has no entries. Return fixed button names.
+    static const char* s_inputNames[] = { "Y", "B", "A", "X" };
+    if( cheatInput >= 0 && cheatInput < NUM_CHEAT_INPUTS )
+    {
+        return s_inputNames[ cheatInput ];
+    }
+    return "";
+#else
     rAssert( cheatInput < static_cast<int>( NUM_CHEAT_INPUT_MAPPINGS ) );
 
     return CHEAT_INPUT_MAPPINGS[ cheatInput ].inputName;
+#endif
 }
 
 //===========================================================================
