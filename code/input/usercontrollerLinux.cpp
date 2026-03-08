@@ -241,10 +241,10 @@ void UserController::OnControllerInputPointChange( unsigned int code, float valu
         {
             switch( dxKey )
             {
-                case SDLGP_Y:              cheatInput = CHEAT_INPUT_0; break;
+                case SDLGP_A:              cheatInput = CHEAT_INPUT_0; break;
                 case SDLGP_B:              cheatInput = CHEAT_INPUT_1; break;
-                case SDLGP_A:              cheatInput = CHEAT_INPUT_2; break;
-                case SDLGP_X:              cheatInput = CHEAT_INPUT_3; break;
+                case SDLGP_X:              cheatInput = CHEAT_INPUT_2; break;
+                case SDLGP_Y:              cheatInput = CHEAT_INPUT_3; break;
                 case SDLGP_LEFTSHOULDER:   cheatInput = CHEAT_INPUT_LTRIGGER; break;
                 case SDLGP_RIGHTSHOULDER:  cheatInput = CHEAT_INPUT_RTRIGGER; break;
             }

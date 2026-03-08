@@ -159,7 +159,7 @@ CheatInputHandler::GetInputName( eCheatInput cheatInput )
 #if defined(RAD_PC) || defined(RAD_LINUX)
     // On PC/Linux, cheat input bypasses the Mappable mapping table entirely,
     // so CHEAT_INPUT_MAPPINGS has no entries. Return fixed button names.
-    static const char* s_inputNames[] = { "Y", "B", "A", "X" };
+    static const char* s_inputNames[] = { "A", "B", "X", "Y" };
     if( cheatInput >= 0 && cheatInput < NUM_CHEAT_INPUTS )
     {
         return s_inputNames[ cheatInput ];
