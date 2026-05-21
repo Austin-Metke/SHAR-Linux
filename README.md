@@ -2,7 +2,7 @@
 
 This is a Linux fork of [ZenoArrows' Nintendo Switch & PS Vita port](https://github.com/ZenoArrows/The-Simpsons-Hit-and-Run) of The Simpsons Hit & Run, based on the leaked source code. The upstream port targets the Nintendo Switch and PS Vita; this fork adds native Linux desktop support.
 
-The full game should be playable, including local multiplayer in the bonus game. The port is however still incomplete, so some glitches can be observed and some visual effects are missing compared to the PC version.
+The full game should be playable, not including local multiplayer in the bonus game. The port is however still incomplete, so some glitches can be observed and some visual effects are missing compared to the PC version.
 
 Please report any Linux-specific bugs or feature requests in the issues tab on this repository. For issues related to the base port, please refer to the [upstream project](https://github.com/ZenoArrows/The-Simpsons-Hit-and-Run).
 
