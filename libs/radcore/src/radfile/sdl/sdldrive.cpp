@@ -9,7 +9,7 @@
 //
 // Subsystem:   Radical Drive System
 //
-// Description:	This file contains the implementation of the radSdlDrive class.
+// Description: This file contains the implementation of the radSdlDrive class.
 //
 // Revisions:
 //
@@ -21,7 +21,10 @@
 //=============================================================================
 // Include Files
 //=============================================================================
-
+#include <string.h>  // Required specifically for memset
+#include <stdio.h>   // Required specifically for printf
+#include <ctype.h>   // For isalnum
+#include <string.h>  // For memset and strncpy
 #include "pch.hpp"
 #include <algorithm>
 #include <limits.h>
@@ -54,8 +57,8 @@
 
 void radSdlDriveFactory
 ( 
-    radDrive**         ppDrive, 
-    const char*        pDriveName,
+    radDrive** ppDrive, 
+    const char* pDriveName,
     radMemoryAllocator alloc
 )
 {
@@ -74,62 +77,53 @@ void radSdlDriveFactory
 //=============================================================================
 // Function:    radSdlDrive::radSdlDrive
 //=============================================================================
-
 radSdlDrive::radSdlDrive( const char* pdrivespec, radMemoryAllocator alloc )
     : 
     radDrive( ),
     m_OpenFiles( 0 ),
     m_pMutex( NULL )
 {
-    //
-    // Create a mutex for lock/unlock
-    //
-    radThreadCreateMutex( &m_pMutex, alloc );
-    rAssert( m_pMutex != NULL );
+    // 1. Clear memory garbage
+    memset(m_DrivePath, 0, sizeof(m_DrivePath));
 
-    //
-    // Create the drive thread.
-    //
-    m_pDriveThread = new( alloc ) radDriveThread( m_pMutex, alloc );
-    rAssert( m_pDriveThread != NULL );
+    // 2. Get the path
+#ifdef WIN32
+    if (_getcwd(m_DrivePath, radFileFilenameMax) == NULL) { m_DrivePath[0] = '\0'; }
+#else
+    if (getcwd(m_DrivePath, radFileFilenameMax) == NULL) { m_DrivePath[0] = '\0'; }
+#endif
 
-    //
-    // Copy the drivename
-    //
+    // --- FIX: Append a trailing slash if it is missing ---
+    size_t len = strlen(m_DrivePath);
+    if (len > 0 && len < radFileFilenameMax && m_DrivePath[len - 1] != '/') 
+    {
+        m_DrivePath[len] = '/';
+        m_DrivePath[len + 1] = '\0';
+    }
+
+    printf("DEBUG: Base Drive Path set to: [%s]\n", m_DrivePath);
+
+    // 3. Create mutex
+    radThreadCreateMutex(&m_pMutex, alloc);
+
+    // 4. Drive name
     radGetDefaultDrive( m_DriveName );
-    if ( strcmp(m_DriveName, pdrivespec ) != 0 )
+    if ( pdrivespec != NULL && strcmp(m_DriveName, pdrivespec ) != 0 )
     {
         strncpy( m_DriveName, pdrivespec, radFileDrivenameMax );
-        strncpy( m_DrivePath, pdrivespec, radFileFilenameMax );
-        m_DriveName[radFileDrivenameMax] = '\0';
-        m_DrivePath[radFileFilenameMax] = '\0';
-        SDL_strupr( m_DriveName );
-        SDL_strlwr( m_DrivePath );
+        m_DriveName[ radFileDrivenameMax ] = '\0';
     }
 
-    if(!m_DrivePath[0])
-    {
-#if SDL_MAJOR_VERSION < 3
-#ifdef WIN32
-        _getcwd( m_DrivePath, radFileFilenameMax );
-        strncat(m_DrivePath, "/", radFileFilenameMax);
-#else
-        getcwd( m_DrivePath, radFileFilenameMax );
-        strncat(m_DrivePath, "/", radFileFilenameMax);
-#endif
-#else
-        char* cwd = SDL_GetCurrentDirectory();
-        strncpy(m_DrivePath, cwd, radFileFilenameMax);
-        SDL_free(cwd);
-#endif
-        m_DrivePath[radFileFilenameMax] = '\0';
-    }
-
+    // 5. Drive capabilities
 #if SDL_MAJOR_VERSION < 3
     m_Capabilities = ( radDriveWriteable | radDriveFile );
 #else
     m_Capabilities = ( radDriveEnumerable | radDriveWriteable | radDriveDirectory | radDriveFile );
 #endif
+
+    // 6. Start thread
+    m_pDriveThread = new( alloc ) radDriveThread( m_pMutex, alloc );
+    rAssert( m_pDriveThread != NULL );
 }
 
 //=============================================================================
@@ -211,20 +205,34 @@ radDrive::CompletionStatus radSdlDrive::Initialize( void )
 
 radDrive::CompletionStatus radSdlDrive::OpenFile
 ( 
-    const char*         fileName, 
+    const char* fileName, 
     radFileOpenFlags    flags, 
     bool                writeAccess, 
-    radFileHandle*      pHandle, 
-    unsigned int*       pSize 
+    radFileHandle* pHandle, 
+    unsigned int* pSize 
 )
 {
     //
-    // Build the full filename
-    //
+   // 1. Declare array
     char fullName[ radFileFilenameMax + 1 ];
+    memset(fullName, 0, sizeof(fullName));
+
     BuildFileSpec( fileName, fullName, radFileFilenameMax + 1 );
 
-    //
+    // CHECK: If there is garbage at the beginning of the path (not a letter, not a number, not a slash, and not a dot)
+    if (fullName[0] != '\0' && fullName[0] != '/' && fullName[0] != '.' && !isalnum((unsigned char)fullName[0])) {
+        // Replace everything with the clean file name (fileName) passed to the function
+        strncpy(fullName, fileName, radFileFilenameMax);
+    }
+
+    // Your fix loop (slashes and lowercase)
+    for (int i = 0; fullName[i] != '\0'; i++) {
+        if (fullName[i] == '\\') fullName[i] = '/';
+        if (fullName[i] >= 'A' && fullName[i] <= 'Z') fullName[i] += 32;
+    }
+
+    printf("DEBUG_FINAL: [%s]\n", fullName);
+    
     // Translate flags to SDL
     //
     const char* createFlags;
@@ -252,6 +260,9 @@ radDrive::CompletionStatus radSdlDrive::OpenFile
 
     if ( *pHandle )
     {
+        // Log successful file opening
+        printf("DEBUG_RESULT: [SUCCESS] opened %s\n", fullName);
+
         m_OpenFiles++;
 #if SDL_MAJOR_VERSION < 3
         *pSize = SDL_RWsize( (SDL_RWops*)*pHandle );
@@ -263,6 +274,9 @@ radDrive::CompletionStatus radSdlDrive::OpenFile
     }
     else
     {
+        // Log if the file failed to open
+        printf("DEBUG_RESULT: [FAILED] to open %s\n", fullName);
+
         m_LastError = FileNotFound;
         return Error;
     }
@@ -290,12 +304,12 @@ radDrive::CompletionStatus radSdlDrive::CloseFile( radFileHandle handle, const c
 radDrive::CompletionStatus radSdlDrive::ReadFile
 ( 
     radFileHandle   handle, 
-    const char*     fileName,
+    const char* fileName,
     IRadFile::BufferedReadState buffState,
     unsigned int    position, 
-    void*           pData, 
+    void* pData, 
     unsigned int    bytesToRead, 
-    unsigned int*   bytesRead, 
+    unsigned int* bytesRead, 
     radMemorySpace  pDataSpace 
 )
 {
@@ -343,13 +357,13 @@ radDrive::CompletionStatus radSdlDrive::ReadFile
 radDrive::CompletionStatus radSdlDrive::WriteFile
 ( 
     radFileHandle     handle,
-    const char*       fileName,
+    const char* fileName,
     IRadFile::BufferedReadState buffState,
     unsigned int      position, 
-    const void*       pData, 
+    const void* pData, 
     unsigned int      bytesToWrite, 
-    unsigned int*     bytesWritten, 
-    unsigned int*     pSize, 
+    unsigned int* bytesWritten, 
+    unsigned int* pSize, 
     radMemorySpace    pDataSpace 
 )
 {
@@ -403,9 +417,9 @@ radDrive::CompletionStatus radSdlDrive::WriteFile
 
 radDrive::CompletionStatus radSdlDrive::FindFirst
 ( 
-    const char*                 searchSpec, 
-    IRadDrive::DirectoryInfo*   pDirectoryInfo, 
-    radFileDirHandle*           pHandle,
+    const char* searchSpec, 
+    IRadDrive::DirectoryInfo* pDirectoryInfo, 
+    radFileDirHandle* pHandle,
     bool                        firstSearch
 )
 {
@@ -667,9 +681,9 @@ void radSdlDrive::BuildFileSpec( const char* fileName, char* fullName, unsigned 
 
 radFileError radSdlDrive::TranslateDirInfo
 ( 
-    IRadDrive::DirectoryInfo*   pDirectoryInfo, 
-    const SDL_PathInfo*         pPathInfo,
-    const radFileDirHandle*     pHandle
+    IRadDrive::DirectoryInfo* pDirectoryInfo, 
+    const SDL_PathInfo* pPathInfo,
+    const radFileDirHandle* pHandle
 )
 {
     char*** handle = (char***)*pHandle;
